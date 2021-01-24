@@ -32,18 +32,19 @@ public class Login : MonoBehaviour
 
     public void OnClickButton()
     {
-        PlayerConfig.CreateJSON();
-        PlayerConfig.Load();
-        if (PlayerConfig.GetPlayerID() != -1 && PlayerConfig.GetPlayerUsername() != null)
-        {
-            debug = "Connecting";
-            StartCoroutine(LoginUser(PlayerConfig.GetPlayerID(), PlayerConfig.GetPlayerUsername()));
-        }
-        else
-        {
-            ErrorCalled("No Registered User");
-            SceneLoader.instance.LoadLevel(1);
-        }
+        //PlayerConfig.CreateJSON();
+        //PlayerConfig.Load();lose
+        //if (PlayerConfig.GetPlayerID() != -1 && PlayerConfig.GetPlayerUsername() != null)
+        //{
+        //    debug = "Connecting";
+        //    StartCoroutine(LoginUser(PlayerConfig.GetPlayerID(), PlayerConfig.GetPlayerUsername()));
+        //}
+        //else
+        //{
+        //    ErrorCalled("No Registered User");
+        //    SceneLoader.instance.LoadLevel(1);
+        //}
+        Client.instance.ConnectedToServer();
     }
 
 
