@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1949cf900c2572e42a1b8242757c3bcf, type: 3}
+  m_Name: Reflect_90
+  m_EditorClassIdentifier: 
+  description: 
+  towerMesh: {fileID: 4614965704926440386, guid: 699bb6bdcfff55c4b9cda991a75ec28a, type: 3}
+  towerCost: 0
+  towerImage: {fileID: 0}
+  colorTint: {r: 0, g: 0, b: 0, a: 0}
+  behaviour: {fileID: 11400000, guid: 72c489f783b58b745a4b0b6bfe4e134e, type: 2}
