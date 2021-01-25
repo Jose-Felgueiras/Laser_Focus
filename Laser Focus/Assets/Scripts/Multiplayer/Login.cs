@@ -44,6 +44,7 @@ public class Login : MonoBehaviour
         //    ErrorCalled("No Registered User");
         //    SceneLoader.instance.LoadLevel(1);
         //}
+        UIManager.instance.panel.SetActive(false);
         Client.instance.ConnectedToServer();
     }
 

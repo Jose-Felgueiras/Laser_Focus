@@ -14,6 +14,10 @@ public class Client : MonoBehaviour
 
     public int id = 0;
     public TCP tcp;
+    public UDP udp;
+
+    private bool isConnected = false;
+    
 
     private delegate void PacketHandler(Packet _packet);
     private static Dictionary<int, PacketHandler> packetHandlers;
@@ -36,11 +40,20 @@ public class Client : MonoBehaviour
     private void Start()
     {
         tcp = new TCP();
+        udp = new UDP();
+    }
+
+    private void OnApplicationQuit()
+    {
+        Disconnect();
     }
 
     public void ConnectedToServer()
     {
         InitializeClientData();
+
+        isConnected = true;
+
         tcp.Connect();
     }
 
@@ -86,7 +99,7 @@ public class Client : MonoBehaviour
             {
                 if (socket != null)
                 {
-                    stream.BeginRead(_packet.ToArray(), 0, _packet.Length(), null, null);
+                    stream.BeginWrite(_packet.ToArray(), 0, _packet.Length(), null, null);
                 }
             }
             catch (Exception _ex)
@@ -102,7 +115,7 @@ public class Client : MonoBehaviour
                 int _byteLenght = stream.EndRead(_result);
                 if (_byteLenght <= 0)
                 {
-                    //TODO DISCONNECT
+                    instance.Disconnect();
 
                     return;
                 }
@@ -110,13 +123,12 @@ public class Client : MonoBehaviour
                 byte[] _data = new byte[_byteLenght];
                 Array.Copy(receiveBuffer, _data, _byteLenght);
 
-                //TODO HANDLE DATA
                 receiveData.Reset(HandleData(_data));
                 stream.BeginRead(receiveBuffer, 0, dataBufferSize, ReceiveCallback, null);
             }
             catch
             {
-                //TODO DISCONNECT
+                Disconnect();
             }
         }
 
@@ -126,7 +138,7 @@ public class Client : MonoBehaviour
 
             receiveData.SetBytes(_data);
 
-            if (receiveData.UnreadLength()  >= 4)
+            if (receiveData.UnreadLength() >= 4)
             {
                 _packetLenght = receiveData.ReadInt();
                 if (_packetLenght <= 0)
@@ -165,14 +177,132 @@ public class Client : MonoBehaviour
 
             return false;
         }
+
+        private void Disconnect()
+        {
+            instance.Disconnect();
+            stream = null;
+            receiveData = null;
+            receiveBuffer = null;
+            socket = null;
+        }
+    }
+
+    public class UDP
+    {
+        public UdpClient socket;
+        public IPEndPoint endPoint;
+
+        public UDP()
+        {
+            endPoint = new IPEndPoint(IPAddress.Parse(instance.ip), instance.port);
+        }
+
+        public void Connect(int _localPort)
+        {
+            socket = new UdpClient(_localPort);
+
+            socket.Connect(endPoint);
+            socket.BeginReceive(ReceiveCallback, null);
+
+            using (Packet _packet = new Packet())
+            {
+                SendData(_packet);
+            }
+        }
+
+        public void SendData(Packet _packet)
+        {
+            try
+            {
+                _packet.InsertInt(instance.id);
+                if (socket != null)
+                {
+                    socket.BeginSend(_packet.ToArray(), _packet.Length(), null, null);
+                }
+            }
+            catch (Exception _ex)
+            {
+                Debug.Log($"Error sending data to server via UDP: {_ex}");
+            }
+        }
+
+        private void ReceiveCallback(IAsyncResult _result)
+        {
+            try
+            {
+                byte[] _data = socket.EndReceive(_result, ref endPoint);
+                socket.BeginReceive(ReceiveCallback, null);
+
+                if (_data.Length < 4)
+                {
+                    instance.Disconnect();
+
+                    return;
+                }
+
+                HandleData(_data);
+            }
+            catch (Exception)
+            {
+
+                Disconnect();
+            }
+        }
+
+        private void HandleData(byte[] _data)
+        {
+            using (Packet _packet = new Packet(_data))
+            {
+                int _packetLength = _packet.ReadInt();
+                _data = _packet.ReadBytes(_packetLength);
+            }
+
+            ThreadManager.ExecuteOnMainThread(() =>
+            {
+                using (Packet _packet = new Packet(_data))
+                {
+                    int _packetId = _packet.ReadInt();
+                    packetHandlers[_packetId](_packet);
+                }
+            });
+        }
+
+        private void Disconnect()
+        {
+            instance.Disconnect();
+
+            endPoint = null;
+            socket = null;
+        }
     }
 
     private void InitializeClientData()
     {
         packetHandlers = new Dictionary<int, PacketHandler>()
         {
-            {(int)ServerPackets.welcome, ClientHandle.Welcome}
+            {(int)ServerPackets.welcome, ClientHandle.Welcome},
+            {(int)ServerPackets.spawnPlayer, ClientHandle.SpawnPlayer},
+            {(int)ServerPackets.playerPosition, ClientHandle.PlayerPosition},
+            {(int)ServerPackets.playerRotation, ClientHandle.PlayerRotation}
+
+
+
+
         };
         Debug.Log("Initialized Packets");
+    }
+
+    private void Disconnect()
+    {
+        if (isConnected)
+        {
+            isConnected = false;
+
+            tcp.socket.Close();
+            udp.socket.Close();
+
+            Debug.Log("Disconnected from Server");
+        }
     }
 }

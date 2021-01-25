@@ -7,14 +7,46 @@ public class GameManager : MonoBehaviour
     #region Singleton
     public static GameManager instance;
 
+    public static Dictionary<int, PlayerManager> players = new Dictionary<int, PlayerManager>();
+
+   
+
     private void Awake()
     {
         if (instance == null)
         {
             instance = this;
         }
+        else
+        {
+            Destroy(this);
+        }
     }
     #endregion
+
+    public GameObject localPlayerPrefab;
+    public GameObject playerPrefab;
+
+    public void SpawnPlayer(int _id, string _username, Vector3 _position, Quaternion _rotation)
+    {
+        GameObject _player;
+        if (_id == Client.instance.id)
+        {
+            _player = Instantiate(localPlayerPrefab, _position, _rotation);
+        }
+        else
+        {
+            _player = Instantiate(playerPrefab, _position, _rotation);
+        }
+
+        _player.GetComponent<PlayerManager>().id = _id;
+        _player.GetComponent<PlayerManager>().username = _username;
+        players.Add(_id, _player.GetComponent<PlayerManager>());
+
+    }
+
+
+    //END OF TESTING
 
     [SerializeField]
     public Tower[] towers;
@@ -36,8 +68,11 @@ public class GameManager : MonoBehaviour
 
         //GameObject grid = new GameObject("Grid Manager");
         //grid.AddComponent<GridManager>();
-        gridManager = GameObject.FindObjectOfType<GridManager>().GetComponent<GridManager>();
-        Camera.main.transform.position = new Vector3((int)(gridManager.GetGridDimensions().x / 2), gridManager.GetGridDimensions().x + gridManager.GetGridDimensions().y, (int)(gridManager.GetGridDimensions().y / 2));
+
+
+
+        //gridManager = GameObject.FindObjectOfType<GridManager>().GetComponent<GridManager>();
+        //Camera.main.transform.position = new Vector3((int)(gridManager.GetGridDimensions().x / 2), gridManager.GetGridDimensions().x + gridManager.GetGridDimensions().y, (int)(gridManager.GetGridDimensions().y / 2));
     }
 
     public PlayerDeck GetPlayerDeck()
