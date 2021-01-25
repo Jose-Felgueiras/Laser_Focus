@@ -75,6 +75,8 @@ public class Client : MonoBehaviour
 
             receiveBuffer = new byte[dataBufferSize];
             socket.BeginConnect(instance.ip, instance.port, ConnectCallback, socket);
+            //socket.BeginConnect(IPAddress.Any, instance.port, ConnectCallback, socket);
+
         }
 
         private void ConnectCallback(IAsyncResult _result)
@@ -196,6 +198,7 @@ public class Client : MonoBehaviour
         public UDP()
         {
             endPoint = new IPEndPoint(IPAddress.Parse(instance.ip), instance.port);
+            //endPoint = new IPEndPoint(IPAddress.Any, instance.port);
         }
 
         public void Connect(int _localPort)
