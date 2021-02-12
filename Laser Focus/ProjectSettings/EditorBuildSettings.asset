@@ -8,10 +8,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/StartScreen.unity
     guid: 9d7cfe3654799e348a1f555c71f09df5
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/RegisterScene.unity
     guid: 27ad9799f8af5eb43943954ffe17f4fc
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/Menu.unity
     guid: 6de07fe9cead1f24ca63844356edddd1
+  - enabled: 1
+    path: Assets/Scenes/Game.unity
+    guid: 9fc0d4010bbf28b4594072e72b8655ab
   m_configObjects: {}

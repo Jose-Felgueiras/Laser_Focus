@@ -11,8 +11,12 @@ public class DeckManager : MonoBehaviour
     public void Start()
     {
         deckList[0] = new Deck();
+        deckList[0].SetDeck(0);
         deckList[1] = new Deck();
+        deckList[1].SetDeck(1);
         deckList[2] = new Deck();
+        deckList[2].SetDeck(2);
+
         SelectDeck(0);
     }
 
@@ -41,7 +45,8 @@ public class DeckManager : MonoBehaviour
         Debug.LogFormat("Equip Slot {0} with {1} in deck {2}", index, tower.name, selectedDeck);
         deckList[selectedDeck].SetDeckTower(index, tower);
         UpdateDeckImages();
-        transform.parent.GetChild(0).GetComponent<TowerList>().CancelEquip();
+        transform.GetComponentInParent<DeckManager>().gameObject.transform.parent.GetComponentInChildren<TowerList>().CancelEquip();
+        PlayerConfig.SetDeck(selectedDeck, deckList[selectedDeck].GetDecksIndices());
     }
 
     public void SelectDeck(int index)
@@ -54,9 +59,9 @@ public class DeckManager : MonoBehaviour
 
     public void ClickedSlot(int index)
     {
-        if (transform.parent.GetChild(0).GetComponent<TowerList>().CanEquip())
+        if (transform.GetComponentInParent<DeckManager>().gameObject.transform.parent.GetComponentInChildren<TowerList>().CanEquip())
         {
-            EquipTower(index, transform.parent.GetChild(0).GetComponent<TowerList>().GetSelectedTower());
+            EquipTower(index, transform.GetComponentInParent<DeckManager>().gameObject.transform.parent.GetComponentInChildren<TowerList>().GetSelectedTower());
         }
     }
 }

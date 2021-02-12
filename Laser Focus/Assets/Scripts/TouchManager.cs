@@ -5,11 +5,6 @@ using UnityEngine.Android;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public interface Behavior<T>
-{
-    T Component {get; set;}
-}
-
 public class TouchManager : MonoBehaviour
 {
     private Vector3 position;

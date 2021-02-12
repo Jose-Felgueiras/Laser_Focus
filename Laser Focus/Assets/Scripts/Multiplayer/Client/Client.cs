@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Net;
 using System.Net.Sockets;
 using System;
+
 public class Client : MonoBehaviour
 {
     public static Client instance;
@@ -17,7 +18,8 @@ public class Client : MonoBehaviour
     public UDP udp;
 
     private bool isConnected = false;
-    
+
+    private Coroutine connectionTracker;
 
     private delegate void PacketHandler(Packet _packet);
     private static Dictionary<int, PacketHandler> packetHandlers;
@@ -27,6 +29,7 @@ public class Client : MonoBehaviour
         if (!instance)
         {
             instance = this;
+            DontDestroyOnLoad(this.gameObject);
         }
         else
         {
@@ -73,10 +76,17 @@ public class Client : MonoBehaviour
                 SendBufferSize = dataBufferSize
             };
 
+            Debug.Log("Attempting to connect");
+
             receiveBuffer = new byte[dataBufferSize];
             socket.BeginConnect(instance.ip, instance.port, ConnectCallback, socket);
-            //socket.BeginConnect(IPAddress.Any, instance.port, ConnectCallback, socket);
 
+
+
+            if (!socket.Connected)
+            {
+                instance.StartTimer();
+            }
         }
 
         private void ConnectCallback(IAsyncResult _result)
@@ -85,8 +95,10 @@ public class Client : MonoBehaviour
 
             if (!socket.Connected)
             {
+                Debug.Log("Connection Failed");
                 return;
             }
+
 
             stream = socket.GetStream();
 
@@ -188,6 +200,8 @@ public class Client : MonoBehaviour
             receiveBuffer = null;
             socket = null;
         }
+
+        
     }
 
     public class UDP
@@ -285,12 +299,24 @@ public class Client : MonoBehaviour
         packetHandlers = new Dictionary<int, PacketHandler>()
         {
             {(int)ServerPackets.welcome, ClientHandle.Welcome},
+            {(int)ServerPackets.sendToMainMenu, ClientHandle.SendToMainMenu},
+            {(int)ServerPackets.sendToRegisterMenu, ClientHandle.SendToRegisterMenu},
+            {(int)ServerPackets.requestNewUsername, ClientHandle.RequestNewUsername},
+            {(int)ServerPackets.sendUserData, ClientHandle.ReceiveUserData},
+            {(int)ServerPackets.handledFriendshipRequest, ClientHandle.HandleFriendshipRequest},
+            {(int)ServerPackets.handledFriendshipListRequest, ClientHandle.HandleFriendsListRequest},
+            {(int)ServerPackets.handledFriendshipRequestListRequest, ClientHandle.HandleFriendRequestsListRequest},
+            {(int)ServerPackets.canceledMatchmaking, ClientHandle.CanceledMatchmaking},
+            {(int)ServerPackets.sendPlayerIntoGame, ClientHandle.SendPlayerIntoGame},
+            {(int)ServerPackets.sendPlayerNumber, ClientHandle.SetPlayerNumber},
+            {(int)ServerPackets.startPlayerTurn, ClientHandle.StartPlayerTurn},
+            {(int)ServerPackets.placeTower, ClientHandle.PlaceTower},
+            {(int)ServerPackets.opponentDisconnected, ClientHandle.OpponentDisconnected},
+            {(int)ServerPackets.opponentForfeited, ClientHandle.OpponentForfeited},
+
             {(int)ServerPackets.spawnPlayer, ClientHandle.SpawnPlayer},
             {(int)ServerPackets.playerPosition, ClientHandle.PlayerPosition},
             {(int)ServerPackets.playerRotation, ClientHandle.PlayerRotation}
-
-
-
 
         };
         Debug.Log("Initialized Packets");
@@ -301,11 +327,48 @@ public class Client : MonoBehaviour
         if (isConnected)
         {
             isConnected = false;
-
-            tcp.socket.Close();
-            udp.socket.Close();
+            if (tcp != null)
+            {
+                if (tcp.socket != null)
+                {
+                    tcp.socket.Close();
+                }
+            }
+            if (udp != null)
+            {
+                if (udp.socket != null)
+                {
+                    udp.socket.Close();
+                }
+            }
+           
 
             Debug.Log("Disconnected from Server");
         }
+    }
+
+    private void StartTimer()
+    {
+        connectionTracker = StartCoroutine(ConnectionAttemptTimer(15f));
+    }
+    public void StopDisconnectTimer()
+    {
+        StopCoroutine(connectionTracker);
+    }
+
+    private static IEnumerator ConnectionAttemptTimer(float _failDelay)
+    {
+        float t = 0;
+        while (t < _failDelay)
+        {
+            t += Time.deltaTime;
+            yield return null;
+        }
+        Debug.Log("Unable to connect");
+        UIManager.instance.panel.SetActive(true);
+        SceneLoader.instance.ShowLoadingScreen(false);
+        UIManager.instance.ShowError(1, 3, "Unable to connect with Server");
+        instance.Disconnect();
+        yield return null;
     }
 }

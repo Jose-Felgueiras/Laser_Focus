@@ -2,6 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum PlayerHit
+{
+    NULL,
+    PLAYER1,
+    PLAYER2
+}
 
 public struct LaserPoint {
     public Vector3 direction;
@@ -23,6 +29,7 @@ public class Laser : MonoBehaviour
     private LayerMask refractLayer;
     private List<LaserPoint> laser = new List<LaserPoint>();
 
+    private PlayerHit hitPlayer = PlayerHit.NULL;
 
     void Start()
     {
@@ -118,6 +125,11 @@ public class Laser : MonoBehaviour
                     laser.Add(outLaserPoint);
                 }
             }
+            if (GameManager.instance.GetGridManager().HitPlayer(hit.transform.parent.gameObject))
+            {
+                hitPlayer = GameManager.instance.GetGridManager().GetHitPlayer(hit.transform.parent.gameObject);
+                GameManager.instance.laserHits.Add(hitPlayer);
+            }
         }
     }
     public List<LaserPoint> GetLaser()
@@ -136,5 +148,10 @@ public class Laser : MonoBehaviour
     public void SetStartDirection(Vector3 dir)
     {
         startDirection = dir;
+    }
+
+    public PlayerHit HitPlayer()
+    {
+        return hitPlayer;
     }
 }

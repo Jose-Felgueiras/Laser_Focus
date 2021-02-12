@@ -33,26 +33,31 @@ public class GridManager : MonoBehaviour
     [SerializeField]
     private MapBase map;
 
+    [SerializeField]
+    private GameObject playerPrefab;
 
+    public GameObject player1;
+    public GameObject player2;
 
     private GridTile[,] grid;
 
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        gridHolder = new GameObject("Grid Holder");
-        gridHolder.transform.parent = transform;
-        wallsHolder = new GameObject("Walls Holder");
-        wallsHolder.transform.parent = transform;
+    //// Start is called before the first frame update
+    //void Start()
+    //{
 
-        GenerateGrid();
-    }
+    //    wallsHolder = new GameObject("Walls Holder");
+    //    wallsHolder.transform.parent = transform;
+
+
+    //}
 
     public void GenerateGrid()
     {
-
+        gridHolder = new GameObject("Grid Holder");
+        gridHolder.transform.parent = transform;
         grid = map.GenerateMap(gridSizeX, gridSizeY, gridHolder.transform);
+        SettupPlayers();
     }
     public Vector2 GetBackgroundCoordsFromIndex(int index)
     {
@@ -65,7 +70,7 @@ public class GridManager : MonoBehaviour
 
     public bool IsBackgroundEmpty(Vector2 gridCoords)
     {
-        if (grid[(int)gridCoords.x, (int)gridCoords.y].currentTower)
+        if (grid[(int)gridCoords.x, (int)gridCoords.y].currentTower || grid[(int)gridCoords.x, (int)gridCoords.y].currentTowerMesh)
         {
             return false;
         }
@@ -116,6 +121,18 @@ public class GridManager : MonoBehaviour
         return grid[0, 0];
     }
 
+    public GridTile GetGridTile(int _index)
+    {
+        Vector2 _pos = GetBackgroundCoordsFromIndex(_index);
+
+        return grid[(int)_pos.x, (int)_pos.y];
+    }
+
+    public GridTile GetGridTile(Vector2 _pos)
+    {
+        return grid[(int)_pos.x, (int)_pos.y];
+    }
+
     public void SetGridTileTower(Vector2 gridCoords, GameObject towerMesh, Tower tower)
     {
         grid[(int)gridCoords.x, (int)gridCoords.y].currentTowerMesh = towerMesh;
@@ -131,6 +148,64 @@ public class GridManager : MonoBehaviour
     public Vector2 GetGridDimensions()
     {
         return new Vector2(gridSizeX, gridSizeY);
+    }
+
+    public bool IsTileAvailable(Vector2 pos)
+    {
+        if (!grid[(int)pos.x, (int)pos.y].currentTower)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public void SetTileOwner(Vector2 _pos, TileOwner _owner)
+    {
+        grid[(int)_pos.x, (int)_pos.y].owner = _owner;
+    }
+
+    public void SettupPlayers()
+    {
+        player1 = Instantiate(playerPrefab);
+        grid[3, 3].currentTowerMesh = player1;
+        player1.transform.position = new Vector3(grid[3, 3].position.x, .5f, grid[3, 3].position.y);
+
+
+        player2 = Instantiate(playerPrefab);
+        grid[21, 21].currentTowerMesh = player2;
+        player2.transform.position = new Vector3(grid[21, 21].position.x, .5f, grid[21, 21].position.y);
+    }
+
+    public bool HitPlayer(GameObject _hitObj)
+    {
+        return player1 == _hitObj || player2 == _hitObj;
+    }
+
+    public PlayerHit GetHitPlayer(GameObject _hitObj)
+    {
+        if (player1 == _hitObj)
+        {
+            if (GameManager.player == PlayerID.LOCALPLAYER)
+            {
+                return PlayerHit.PLAYER1;
+            }
+            else
+            {
+                return PlayerHit.PLAYER2;
+            }
+        }
+        if (player2 == _hitObj)
+        {
+            if (GameManager.player == PlayerID.LOCALPLAYER)
+            {
+                return PlayerHit.PLAYER2;
+            }
+            else
+            {
+                return PlayerHit.PLAYER1;
+            }
+        }
+        return PlayerHit.NULL;
     }
 }
 

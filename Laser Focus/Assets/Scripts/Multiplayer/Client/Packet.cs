@@ -8,6 +8,27 @@ using System;
 public enum ServerPackets
 {
     welcome = 1,
+
+    sendToRegisterMenu,
+    sendToMainMenu,
+    requestNewUsername,
+
+    sendUserData,
+
+    handledFriendshipRequest,
+    handledFriendshipListRequest,
+    handledFriendshipRequestListRequest,
+
+    canceledMatchmaking,
+    sendPlayerIntoGame,
+
+    sendPlayerNumber,
+    startPlayerTurn,
+    placeTower,
+
+    opponentDisconnected,
+    opponentForfeited,
+
     spawnPlayer,
     playerPosition,
     playerRotation
@@ -18,6 +39,28 @@ public enum ServerPackets
 public enum ClientPackets
 {
     welcomeReceived = 1,
+
+    checkDatabase,
+    createUser,
+
+    sendFriendRequest,
+    acceptFriendRequest,
+    rejectFriendRequest,
+    friendsListRequest,
+    friendRequestsListRequest,
+
+    joinRandomRoom,
+    cancelMatchmaking,
+    successfullyLoadedGame,
+
+    requestPlayer,
+    requestPlayerTurn,
+    placeTowerRequest,
+
+    playerForfeited,
+
+    sendWinner,
+
     playerInput
 }
 
@@ -161,6 +204,13 @@ public class Packet : IDisposable
     {
         Write(_value.Length); // Add the length of the string to the packet
         buffer.AddRange(Encoding.ASCII.GetBytes(_value)); // Add the string itself
+    }
+    /// <summary>Adds a Vector2 to the packet.</summary>
+    /// <param name="_value">The string to add.</param>
+    public void Write(Vector2 _value)
+    {
+        Write(_value.x);
+        Write(_value.y);
     }
     /// <summary>Adds a Vector3 to the packet.</summary>
     /// <param name="_value">The string to add.</param>
@@ -352,6 +402,13 @@ public class Packet : IDisposable
         }
     }
 
+
+    /// <summary>Reads a Vector2 from the packet.</summary>
+    /// <param name="_movReadPos">Whether or not to move the buffer's read position.</param>
+    public Vector2 ReadVector2(bool _movReadPos = true)
+    {
+        return new Vector2(ReadFloat(_movReadPos), ReadFloat(_movReadPos));
+    }
     /// <summary>Reads a Vector3 from the packet.</summary>
     /// <param name="_movReadPos">Whether or not to move the buffer's read position.</param>
     public Vector3 ReadVector(bool _movReadPos = true)

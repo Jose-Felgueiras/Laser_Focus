@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+using UnityEngine.Events;
 public class SceneLoader : MonoBehaviour
 {
 
@@ -25,6 +25,11 @@ public class SceneLoader : MonoBehaviour
     public void CONNECTIONERROR(string error = "ERROR: Unknown")
     {
         StartCoroutine(LoadStartWithError(error));
+    }
+
+    public void ShowLoadingScreen(bool value)
+    {
+        loadingScreen.SetActive(value);
     }
 
     IEnumerator LoadAsynchronously (int sceneIndex)

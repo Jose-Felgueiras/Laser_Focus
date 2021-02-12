@@ -17,9 +17,15 @@ public class PlayerDeck : MonoBehaviour
     {
         
     }
+
+    public void SettupDeck()
+    {
+
+    }
+
     public Tower GetTower(int index)
     {
-        return GameManager.instance.towers[deck[index]];
+        return AllTowers.instance.GetTowerFromIndex(deck[index]);
     }
 
 }

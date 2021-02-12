@@ -7,8 +7,6 @@ public class TowerList : MonoBehaviour
 {
     public static TowerList towerList;
 
-    [SerializeField]
-    private List<Tower> allTowers;
 
     public GameObject towerSelectionPrefab;
     public GameObject towersBlocker;
@@ -25,6 +23,10 @@ public class TowerList : MonoBehaviour
         {
             towerList = this;
         }
+        else
+        {
+            Destroy(this.gameObject);
+        }
     }
     private void Start()
     {
@@ -40,7 +42,7 @@ public class TowerList : MonoBehaviour
         row.GetComponent<HorizontalLayoutGroup>().childForceExpandWidth = false;
         //row.GetComponent<RectTransform>().a
 
-        for (int i = 0; i < allTowers.Count; i++)
+        for (int i = 0; i < AllTowers.instance.GetTowerCount(); i++)
         {
             if (i > 0 && i % 4 == 0)
             {
@@ -56,8 +58,9 @@ public class TowerList : MonoBehaviour
                 newRow.GetComponent<HorizontalLayoutGroup>().childForceExpandWidth = false;
             }
             GameObject towerSelection = Instantiate(towerSelectionPrefab,transform.GetChild(Mathf.FloorToInt(i / 4)));
-            towerSelection.transform.GetChild(0).GetComponent<Image>().sprite = allTowers[i].GetSprite();
-            towerSelection.transform.GetChild(0).GetComponent<Image>().color = allTowers[i].GetColor();
+            towerSelection.AddComponent<DragDrop>();
+            towerSelection.transform.GetChild(0).GetComponent<Image>().sprite = AllTowers.instance.GetTowerFromIndex(i).GetSprite();
+            towerSelection.transform.GetChild(0).GetComponent<Image>().color = AllTowers.instance.GetTowerFromIndex(i).GetColor();
             int index = towerSelection.transform.GetSiblingIndex() + towerSelection.transform.parent.GetSiblingIndex() * 4;
             towerSelection.transform.GetChild(0).GetComponent<Button>().onClick.AddListener(delegate { OnSelect(index); });
             towerSelection.transform.GetChild(1).GetChild(0).GetComponent<Button>().onClick.AddListener(delegate { OnSelectEquip(index); });
@@ -97,12 +100,12 @@ public class TowerList : MonoBehaviour
         StartCoroutine(SmoothFloat(.7f, 1f, .3f, transform.GetChild((Mathf.FloorToInt(index / 4))).GetChild(index % 4).gameObject));
         selectedChild = -1;
         towersBlocker.SetActive(true);
-        selectedTower = allTowers[index];
+        selectedTower = AllTowers.instance.GetTowerFromIndex(index);
         canEquip = true;
     }
     private void OnSelectInfo(int index)
     {
-        Debug.Log("Equip " + allTowers[index].GetDescription());
+        Debug.Log("Equip " + AllTowers.instance.GetTowerFromIndex(index).GetDescription());
 
     }
     public void CancelEquip()
@@ -118,11 +121,6 @@ public class TowerList : MonoBehaviour
     public Tower GetSelectedTower()
     {
         return selectedTower;
-    }
-
-    public Tower GetTowerFromList(int index)
-    {
-        return allTowers[index];
     }
 
     #region Coroutines

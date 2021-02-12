@@ -45,6 +45,7 @@ public class Login : MonoBehaviour
         //    SceneLoader.instance.LoadLevel(1);
         //}
         UIManager.instance.panel.SetActive(false);
+        SceneLoader.instance.ShowLoadingScreen(true);
         Client.instance.ConnectedToServer();
     }
 

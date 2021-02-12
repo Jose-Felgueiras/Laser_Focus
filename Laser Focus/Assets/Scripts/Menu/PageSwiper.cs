@@ -10,35 +10,52 @@ public class PageSwiper : MonoBehaviour, IDragHandler, IEndDragHandler, IBeginDr
 {
     #region Private Fields Serializable
 
+    [Header("Swiping Settings")]
     [SerializeField]
     private float percentThreshold = 0.2f;
     [SerializeField]
     private float easeSpeed = 0.5f;
+
+    [Header("Bottom Buttons")]
     [SerializeField]
     private Transform bottomButtonRow;
+
+
+    [Header("Tower Tab Settings")]
     [SerializeField]
     private float draggThreshold = 0.1f;
     [SerializeField]
     private float towersPannelYOffset = 310f;
+
+
+    [Header("Friends Tab Settings")]
+    [SerializeField]
+    private GameObject friendsMovablePanel;
+
     #endregion
 
     #region Private Fields
+    //Swiping Settings
     private Vector3 startPanelLocation;
-
     private Vector3 panelLocation;
-
     private int panels = 5;
     private int currentPanel = 0;
 
+    //Input Settings
     private Vector2 startTouchPos;
     private Vector2 endTouchPos;
     private float startTouchTime;
     private float endTouchTime;
 
+    //Towers Tab Settings
     private Vector3 allTowersPanelStart;
     private Vector3 allTowersPanel;
     private GameObject tempGO;
     private Tower draggedTower;
+
+    //Friends Tab Settings
+    private Vector3 friendsPanelStart;
+    private Vector3 friendsPanel;
 
 
     #endregion
@@ -49,6 +66,9 @@ public class PageSwiper : MonoBehaviour, IDragHandler, IEndDragHandler, IBeginDr
         panelLocation = transform.position;
         allTowersPanelStart =  new Vector3(transform.GetChild(currentPanel).GetChild(0).transform.localPosition.x, transform.GetChild(currentPanel).GetChild(0).transform.position.y, transform.GetChild(currentPanel).GetChild(0).transform.localPosition.z) - new Vector3(0, towersPannelYOffset, 0);
         allTowersPanel = allTowersPanelStart;
+
+        friendsPanelStart = friendsMovablePanel.transform.position;
+        friendsPanel = friendsPanelStart;
         ChangeToPanel(2);
     }
 
@@ -73,7 +93,7 @@ public class PageSwiper : MonoBehaviour, IDragHandler, IEndDragHandler, IBeginDr
                     tempGO.transform.parent = transform.parent;
                     tempGO.AddComponent<Image>();
                     int index = data.pointerCurrentRaycast.gameObject.transform.parent.GetSiblingIndex() + data.pointerCurrentRaycast.gameObject.transform.parent.parent.GetSiblingIndex() * 4;
-                    draggedTower = transform.GetChild(1).GetChild(0).GetComponent<TowerList>().GetTowerFromList(index);
+                    draggedTower = AllTowers.instance.GetTowerFromIndex(index);
                     tempGO.GetComponent<Image>().sprite = draggedTower.GetSprite();
                     tempGO.GetComponent<Image>().color = draggedTower.GetColor();
                     tempGO.GetComponent<Image>().raycastTarget = false;
@@ -82,11 +102,12 @@ public class PageSwiper : MonoBehaviour, IDragHandler, IEndDragHandler, IBeginDr
         }
     }
 
+
     public void OnDrag(PointerEventData data)
     {
         if (tempGO)
         {
-            if ((startTouchTime - Time.time) + draggThreshold <= 0)
+            if ((startTouchTime - Time.time) >= draggThreshold)
             {
                 tempGO.transform.position = data.position;
                 return;
@@ -95,55 +116,18 @@ public class PageSwiper : MonoBehaviour, IDragHandler, IEndDragHandler, IBeginDr
             Destroy(tempGO);
             tempGO = null;
         }
-        //Debug.Log(data.pointerCurrentRaycast.gameObject.name);
+
         float differenceX = data.pressPosition.x - data.position.x;
         float differenceY = data.pressPosition.y - data.position.y;
         float percent = (data.pressPosition.x - data.position.x) / Screen.width;
         Vector2 lenght = data.pressPosition - data.position;
         float dot = Vector2.Dot(lenght.normalized, Vector2.up);
-        if (currentPanel == 1)
-        {
-            //DECK SELECTOR
-            if (Mathf.Abs(dot) >= 0.7f)
-            {
-                // || differenceY < 0 && transform.GetChild(currentPanel).GetChild(0).position.y > transform.GetChild(currentPanel).GetChild(0).GetComponent<RectTransform>().sizeDelta.y
-                if (differenceY > 0)
-                {
-                    if (transform.GetChild(currentPanel).GetChild(0).position.y - towersPannelYOffset < allTowersPanelStart.y)
-                    {
-                        //differenceY /= panels; //FLICKER BUG
-                        transform.GetChild(currentPanel).GetChild(0).localPosition = allTowersPanel - new Vector3(0, differenceY, 0);
-                    }
-                    else
-                    {
-                        transform.GetChild(currentPanel).GetChild(0).localPosition = allTowersPanel - new Vector3(0, differenceY, 0);
-                    }
 
-                }
-                else
-                {
-                    transform.GetChild(currentPanel).GetChild(0).localPosition = allTowersPanel - new Vector3(0, differenceY, 0);
-                }
-
-                Vector3 newLocation = new Vector3(-Screen.width * currentPanel, startPanelLocation.y, startPanelLocation.z) + new Vector3(Screen.width / 2, 0, 0);
-                StartCoroutine(SmoothMove(transform.position, newLocation, easeSpeed));
-            }
-            else
-            {
-                differenceX /= panels;
-                transform.position = panelLocation - new Vector3(differenceX, 0, 0);
-            }
-        }
-        else
+        if (!(Mathf.Abs(dot) >= 0.7f))
         {
-            if (Mathf.Abs(percent) > percentThreshold)
-            {
-               
-                differenceX /= panels;
-                transform.position = panelLocation - new Vector3(differenceX, 0, 0);
-               
-            }
-        }
+            differenceX /= panels;
+            transform.position = panelLocation - new Vector3(differenceX, 0, 0);
+        }  
     }
 
     public void OnEndDrag(PointerEventData data)
@@ -173,32 +157,8 @@ public class PageSwiper : MonoBehaviour, IDragHandler, IEndDragHandler, IBeginDr
         float dot = Vector2.Dot(direction.normalized, Vector2.up);
         float speed = Vector2.Distance(startTouchPos, endTouchPos) / (endTouchTime - startTouchTime);
         float percent = (data.pressPosition.x - data.position.x) / Screen.width;
-        if (Mathf.Abs(dot) >= 0.7f)
+        if (Mathf.Abs(dot) <= 0.7f)
         {
-            if (currentPanel == 1)
-            {
-                allTowersPanel = transform.GetChild(currentPanel).GetChild(0).localPosition;
-                if (allTowersPanel.y < allTowersPanelStart.y)
-                {
-                    StartCoroutine(SmoothMoveTowers(transform.GetChild(currentPanel).GetChild(0).localPosition, allTowersPanelStart, easeSpeed));
-                }
-                //Debug.LogFormat("Panel {0}    vs   {1}",(allTowersPanel.y - allTowersPanelStart.y).ToString(), (Screen.height - transform.GetChild(currentPanel).GetChild(0).GetComponent<RectTransform>().sizeDelta.y).ToString());
-                //Debug.Log(allTowersPanelStart.y.ToString());
-                //Debug.LogFormat("Start: {0}; Local: {1}; ", transform.GetChild(currentPanel).GetChild(0).position.y.ToString(), (allTowersPanelStart.y + transform.GetChild(currentPanel).GetChild(0).GetComponent<RectTransform>().sizeDelta.y).ToString());
-                //Debug.Log(transform.GetChild(currentPanel).GetChild(0).GetComponent<RectTransform>().sizeDelta.y.ToString());
-                Debug.Log(transform.GetChild(currentPanel).GetChild(0).position.y.ToString());
-                if (transform.GetChild(currentPanel).GetChild(0).position.y > Screen.height + transform.GetChild(currentPanel).GetChild(0).GetComponent<RectTransform>().sizeDelta.y - (Screen.height - 256))
-                {
-                    Vector3 pos = new Vector3(transform.GetChild(currentPanel).GetChild(0).position.x, (Screen.height + transform.GetChild(currentPanel).GetChild(0).GetComponent<RectTransform>().sizeDelta.y - (Screen.height - 256)), transform.GetChild(currentPanel).GetChild(0).position.z);
-                    StartCoroutine(SmoothMoveTowersWorld(transform.GetChild(currentPanel).GetChild(0).position, pos, easeSpeed));
-
-                }
-            }
-        }
-        else
-        {
-
-           
             if (Mathf.Abs(percent) >= percentThreshold)
             {
                 Vector3 newLocation = panelLocation;
@@ -236,12 +196,13 @@ public class PageSwiper : MonoBehaviour, IDragHandler, IEndDragHandler, IBeginDr
 
     public void ChangeToPanel(int panelIndex)
     {
+        if (panelIndex == 3)
+        {
+            ClientSend.RequestAllFriendRequestsList();
+            ClientSend.RequestAllFriendsList();
+        }
         if (panelIndex>= 0 && panelIndex < panels)
         {
-            if (currentPanel == 1)
-            {
-                StartCoroutine(SmoothMoveTowers(transform.GetChild(currentPanel).GetChild(0).localPosition, allTowersPanelStart, easeSpeed));
-            }
             bottomButtonRow.GetChild(currentPanel).GetComponent<Button>().interactable = true;
             currentPanel = panelIndex;
             Vector3 newLocation = new Vector3(-Screen.width * currentPanel, startPanelLocation.y, startPanelLocation.z) + new Vector3(Screen.width / 2, 0, 0);
@@ -264,28 +225,5 @@ public class PageSwiper : MonoBehaviour, IDragHandler, IEndDragHandler, IBeginDr
             yield return null;
         }
     }
-    private IEnumerator SmoothMoveTowers(Vector3 startPos, Vector3 endPos, float time)
-    {
-        float t = 0.0f;
-        while (t <= 1.0f)
-        {
-            t += Time.deltaTime / time;
-            transform.GetChild(1).GetChild(0).localPosition = Vector3.Lerp(startPos, endPos, Mathf.SmoothStep(0.0f, 1.0f, t));
-            allTowersPanel = transform.GetChild(1).GetChild(0).localPosition;
-            yield return null;
-        }
-    }
-    private IEnumerator SmoothMoveTowersWorld(Vector3 startPos, Vector3 endPos, float time)
-    {
-        float t = 0.0f;
-        while (t <= 1.0f)
-        {
-            t += Time.deltaTime / time;
-            transform.GetChild(1).GetChild(0).position = Vector3.Lerp(startPos, endPos, Mathf.SmoothStep(0.0f, 1.0f, t));
-            allTowersPanel = transform.GetChild(1).GetChild(0).localPosition;
-            yield return null;
-        }
-    }
-
     #endregion
 }
