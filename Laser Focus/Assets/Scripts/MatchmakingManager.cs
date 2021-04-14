@@ -25,6 +25,7 @@ public class MatchmakingManager : MonoBehaviour
     public void JoinOrCreateRandomRoom()
     {
         ClientSend.JoinRandomRoom();
+        ClientSend.SendDeckToServer();
         ShowMatchmakingPanel(true);
 
     }

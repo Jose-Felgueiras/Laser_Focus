@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour, IDragHandler, IEndDragHandler, IB
         {
             if (_data.pointerPressRaycast.gameObject.GetComponentInParent<Canvas>() && _data.pointerPressRaycast.gameObject.GetComponentInParent<GridLayoutGroup>())
             {
-                selectedTower = _data.pointerPressRaycast.gameObject.transform.GetSiblingIndex();
+                selectedTower = GameManager.instance.GetPlayerDeck().GetIndex(_data.pointerPressRaycast.gameObject.transform.GetSiblingIndex());
             }
         }
         else
@@ -156,7 +156,7 @@ public class PlayerController : MonoBehaviour, IDragHandler, IEndDragHandler, IB
         }
         else
         {
-            towerHolo = Instantiate(GameManager.instance.GetPlayerDeck().GetTower(selectedTower).GetGameObject());
+            towerHolo = Instantiate(AllTowers.instance.GetTowerFromIndex(selectedTower).GetGameObject());
             towerHolo.transform.position = GameManager.instance.GetGridManager().GetGridTile(gridPos).background.transform.position + Vector3.back;
         }
     }

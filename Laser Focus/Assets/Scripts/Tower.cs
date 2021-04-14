@@ -38,7 +38,7 @@ public class Tower : ScriptableObject
     [SerializeField]
     private bool canRotate;
     [SerializeField]
-    private TowerBehaviour[] behaviours;
+    private TowerBehaviour[] behaviours = new TowerBehaviour[0];
 
     
     public Sprite GetSprite()

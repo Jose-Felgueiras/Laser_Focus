@@ -149,6 +149,7 @@ public class ClientHandle : MonoBehaviour
         for (int i = 0; i < _deck.Length; i++)
         {
             _deck[i] = _packet.ReadInt();
+            Debug.LogFormat($"Deck slot {0} has tower {1}", i, _deck[i]);
         }
         GameManager.instance.GetPlayerDeck().SettupDeck(_deck);
         InGameHUD.instance.UpdateDeckVisuals();

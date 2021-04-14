@@ -9,12 +9,18 @@ public class PlayerDeck : MonoBehaviour
 
     public void SettupDeck(int[] _deck)
     {
+
         deck = _deck;
     }
 
     public Tower GetTower(int index)
     {
         return AllTowers.instance.GetTowerFromIndex(deck[index]);
+    }
+
+    public int GetIndex(int index)
+    {
+        return deck[index];
     }
 
 }
