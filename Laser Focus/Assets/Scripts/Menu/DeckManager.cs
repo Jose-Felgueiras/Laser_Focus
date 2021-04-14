@@ -8,6 +8,17 @@ public class DeckManager : MonoBehaviour
     private Deck[] deckList = new Deck[3];
     private int selectedDeck;
 
+    [SerializeField]
+    private Sprite[] commonRarityButton = new Sprite[2];
+    [SerializeField]
+    private Sprite[] uncommonRarityButton = new Sprite[2];
+    [SerializeField]
+    private Sprite[] rareRarityButton = new Sprite[2];
+    [SerializeField]
+    private Sprite[] epicRarityButton = new Sprite[2];
+    [SerializeField]
+    private Sprite[] legendaryRarityButton= new Sprite[2];
+
     public void Start()
     {
         deckList[0] = new Deck();
@@ -17,7 +28,7 @@ public class DeckManager : MonoBehaviour
         deckList[2] = new Deck();
         deckList[2].SetDeck(2);
 
-        SelectDeck(0);
+        SelectDeck(PlayerConfig.GetSelectedDeck());
     }
 
     private void UpdateDeckImages()
@@ -28,6 +39,59 @@ public class DeckManager : MonoBehaviour
             {
                 transform.GetChild(1).GetChild(i).GetChild(0).GetComponent<Image>().sprite = deckList[selectedDeck].GetDeck()[i].GetSprite();
                 transform.GetChild(1).GetChild(i).GetChild(0).GetComponent<Image>().color = deckList[selectedDeck].GetDeck()[i].GetColor();
+                transform.GetChild(1).GetChild(i).gameObject.GetComponent<Button>().transition = Selectable.Transition.SpriteSwap;
+
+                SpriteState tempState = new SpriteState();
+                switch (deckList[selectedDeck].GetDeck()[i].GetRarity())
+                {
+                    case ETowerRarity.COMMON:
+                        transform.GetChild(1).GetChild(i).gameObject.GetComponent<Button>().image.sprite = commonRarityButton[0];
+                        tempState.highlightedSprite = commonRarityButton[0];
+                        tempState.selectedSprite = commonRarityButton[0];
+                        tempState.pressedSprite = commonRarityButton[1];
+
+                        transform.GetChild(1).GetChild(i).gameObject.GetComponent<Button>().spriteState = tempState;
+                        break;
+                    case ETowerRarity.UNCOMMON:
+                        transform.GetChild(1).GetChild(i).gameObject.GetComponent<Button>().image.sprite = uncommonRarityButton[0];
+
+                        tempState.highlightedSprite = uncommonRarityButton[0];
+                        tempState.selectedSprite = uncommonRarityButton[0];
+                        tempState.pressedSprite = uncommonRarityButton[1];
+
+                        transform.GetChild(1).GetChild(i).gameObject.GetComponent<Button>().spriteState = tempState;
+                        break;
+                    case ETowerRarity.RARE:
+                        transform.GetChild(1).GetChild(i).gameObject.GetComponent<Button>().image.sprite = rareRarityButton[0];
+
+                        tempState.highlightedSprite = rareRarityButton[0];
+                        tempState.selectedSprite = rareRarityButton[0];
+                        tempState.pressedSprite = rareRarityButton[1];
+
+                        transform.GetChild(1).GetChild(i).gameObject.GetComponent<Button>().spriteState = tempState;
+                        break;
+                    case ETowerRarity.EPIC:
+                        transform.GetChild(1).GetChild(i).gameObject.GetComponent<Button>().image.sprite = epicRarityButton[0];
+
+                        tempState.highlightedSprite = epicRarityButton[0];
+                        tempState.selectedSprite = epicRarityButton[0];
+                        tempState.pressedSprite = epicRarityButton[1];
+
+                        transform.GetChild(1).GetChild(i).gameObject.GetComponent<Button>().spriteState = tempState;
+                        break;
+                    case ETowerRarity.LEGENDARY:
+                        transform.GetChild(1).GetChild(i).gameObject.GetComponent<Button>().image.sprite = legendaryRarityButton[0];
+
+                        tempState.highlightedSprite = legendaryRarityButton[0];
+                        tempState.selectedSprite = legendaryRarityButton[0];
+                        tempState.pressedSprite = legendaryRarityButton[1];
+
+                        transform.GetChild(1).GetChild(i).gameObject.GetComponent<Button>().spriteState = tempState;
+                        break;
+                    default:
+                        break;
+                }
+                
             }
             else
             {
@@ -51,9 +115,10 @@ public class DeckManager : MonoBehaviour
 
     public void SelectDeck(int index)
     {
-        transform.GetChild(0).GetChild(selectedDeck).GetComponent<Button>().interactable = true;
+        transform.GetChild(0).GetChild(0).GetChild(selectedDeck).GetComponent<Button>().interactable = true;
         selectedDeck = index;
-        transform.GetChild(0).GetChild(selectedDeck).GetComponent<Button>().interactable = false;
+        PlayerConfig.SetSelectedDeck(selectedDeck);
+        transform.GetChild(0).GetChild(0).GetChild(selectedDeck).GetComponent<Button>().interactable = false;
         UpdateDeckImages();
     }
 

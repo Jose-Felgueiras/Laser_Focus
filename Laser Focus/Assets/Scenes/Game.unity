@@ -1373,6 +1373,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 396973831136263859, guid: 68dfcb585491a2a42b540e4ad602c47d, type: 3}
+      propertyPath: allTowers.Array.data[0]
+      value: 
+      objectReference: {fileID: 11400000, guid: 06e5b0990261bd74081e7335fbe53c37, type: 2}
+    - target: {fileID: 396973831136263859, guid: 68dfcb585491a2a42b540e4ad602c47d, type: 3}
+      propertyPath: allTowers.Array.data[3]
+      value: 
+      objectReference: {fileID: 11400000, guid: 609ad3e1ed535c645ad2eb1d92c9a8da, type: 2}
     - target: {fileID: 396973831136263860, guid: 68dfcb585491a2a42b540e4ad602c47d, type: 3}
       propertyPath: m_Name
       value: AllTowers
@@ -2012,13 +2020,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &789895361
 GameObject:
   m_ObjectHideFlags: 0
@@ -2524,7 +2532,7 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
+  m_ClearFlags: 2
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
@@ -2565,13 +2573,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 12, y: 45, z: 12}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 8.5, y: 4.5, z: -35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1194378029
 GameObject:
   m_ObjectHideFlags: 0
@@ -5478,9 +5486,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e308c86d9dc711748848cb7b9014e3c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridSizeX: 25
-  gridSizeY: 25
-  map: {fileID: 11400000, guid: 88edd4d67e0b48048ad60604f96a6245, type: 2}
+  gridSizeX: 17
+  gridSizeY: 13
+  map: {fileID: 11400000, guid: d6db85dfff51e63408509d6b429487cc, type: 2}
   playerPrefab: {fileID: 5659456648859592891, guid: 85b18d0b5c0354f4bbebd1a12f194a6b, type: 3}
   player1: {fileID: 0}
   player2: {fileID: 0}

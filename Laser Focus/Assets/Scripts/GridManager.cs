@@ -41,7 +41,7 @@ public class GridManager : MonoBehaviour
 
     private GridTile[,] grid;
 
-
+    public static Vector3 v3TowerOffset { get; private set; } = new Vector3(.5f, .5f, 0);
     //// Start is called before the first frame update
     //void Start()
     //{
@@ -57,12 +57,13 @@ public class GridManager : MonoBehaviour
         gridHolder = new GameObject("Grid Holder");
         gridHolder.transform.parent = transform;
         grid = map.GenerateMap(gridSizeX, gridSizeY, gridHolder.transform);
-        SettupPlayers();
+
+        //SettupPlayers();
     }
     public Vector2 GetBackgroundCoordsFromIndex(int index)
     {
         int x, y;
-        y = Mathf.FloorToInt((float)index / (float)gridSizeY);
+        y = Mathf.FloorToInt((float)index / (float)gridSizeX);
         x = index % gridSizeX;
 
         return new Vector2(x, y);
@@ -78,6 +79,21 @@ public class GridManager : MonoBehaviour
         {
             return true;
         }
+    }
+
+    public Tower GetTower(int x, int y)
+    {
+        return grid[x, y].currentTower;
+    }
+
+    public Tower GetTower(float x, float y)
+    {
+        return grid[(int)x, (int)y].currentTower;
+    }
+
+    public Tower GetTower(Vector2 pos)
+    {
+        return grid[(int)pos.x, (int)pos.y].currentTower;
     }
 
     public Tower GetTowerFromCoords(Vector2 gridCoords)
@@ -133,6 +149,19 @@ public class GridManager : MonoBehaviour
         return grid[(int)_pos.x, (int)_pos.y];
     }
 
+    public GridTile GetGridTile(Vector2Int _pos)
+    {
+        return grid[_pos.x, _pos.y];
+    }
+
+    public GridTile GetGridTile(int x, int y)
+    {
+        return grid[x, y];
+    }
+    public GridTile GetGridTile(float x, float y)
+    {
+        return grid[(int)x, (int)y];
+    }
     public void SetGridTileTower(Vector2 gridCoords, GameObject towerMesh, Tower tower)
     {
         grid[(int)gridCoords.x, (int)gridCoords.y].currentTowerMesh = towerMesh;
@@ -141,8 +170,10 @@ public class GridManager : MonoBehaviour
 
     public void ClearGridTileTower(Vector2 gridCoords)
     {
-        Destroy(grid[(int)gridCoords.x, (int)gridCoords.y].currentTower);
+        Destroy(grid[(int)gridCoords.x, (int)gridCoords.y].currentTowerMesh.gameObject);
         grid[(int)gridCoords.x, (int)gridCoords.y].currentTower = null;
+        grid[(int)gridCoords.x, (int)gridCoords.y].currentTowerMesh = null;
+        grid[(int)gridCoords.x, (int)gridCoords.y].owner = TileOwner.GAMEMANAGER;
     }
 
     public Vector2 GetGridDimensions()
@@ -158,6 +189,42 @@ public class GridManager : MonoBehaviour
         }
         return false;
     }
+    public bool IsTileAvailable(int x, int y)
+    {
+        if (!grid[x, y].currentTower)
+        {
+            return true;
+        }
+        return false;
+    }
+    public void ClearLaserHits()
+    {
+        for (int y = 0; y < gridSizeY; y++)
+        {
+            for (int x = 0; x < gridSizeX; x++)
+            {
+                if (grid[x, y].currentTower)
+                {
+                    foreach (TowerBehaviour behaviour in grid[x, y].currentTowerMesh.GetComponents<TowerBehaviour>())
+                    {
+                        behaviour.ClearAllHits();
+                    }
+                }
+                if (grid[x, y].background.GetComponent<MeshRenderer>())
+                {
+                    if ((x + y) % 2 == 0)
+                    {
+                        grid[x, y].background.GetComponent<MeshRenderer>().material.color = Color.black;
+                    }
+                    else
+                    {
+                        grid[x, y].background.GetComponent<MeshRenderer>().material.color = Color.white;
+                    }
+                }
+            }
+        }
+    }
+
 
     public void SetTileOwner(Vector2 _pos, TileOwner _owner)
     {
@@ -176,9 +243,89 @@ public class GridManager : MonoBehaviour
         player2.transform.position = new Vector3(grid[21, 21].position.x, .5f, grid[21, 21].position.y);
     }
 
+    public bool HitPlayer(Vector2 _pos)
+    {
+        if ((Vector2)map.GetPlayerStartPositions()[0] == _pos)
+        {
+            return true;
+        }
+        if ((Vector2)map.GetPlayerStartPositions()[1] == _pos)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public bool HitPlayer(Vector2Int _pos)
+    {
+        if (map.GetPlayerStartPositions()[0] == _pos)
+        {
+            return true;
+        }
+        if (map.GetPlayerStartPositions()[1] == _pos)
+        {
+            return true;
+        }
+        return false;
+    }
+
     public bool HitPlayer(GameObject _hitObj)
     {
         return player1 == _hitObj || player2 == _hitObj;
+    }
+
+    public PlayerHit GetHitPlayer(Vector2 _pos)
+    {
+        if ((Vector2)map.GetPlayerStartPositions()[0] == _pos)
+        {
+            if (GameManager.player == PlayerID.LOCALPLAYER)
+            {
+                return PlayerHit.PLAYER1;
+            }
+            else
+            {
+                return PlayerHit.PLAYER2;
+            }
+        }
+        if ((Vector2)map.GetPlayerStartPositions()[1] == _pos)
+        {
+            if (GameManager.player == PlayerID.LOCALPLAYER)
+            {
+                return PlayerHit.PLAYER2;
+            }
+            else
+            {
+                return PlayerHit.PLAYER1;
+            }
+        }
+        return PlayerHit.NULL;
+    }
+
+    public PlayerHit GetHitPlayer(Vector2Int _pos)
+    {
+        if (map.GetPlayerStartPositions()[0] == _pos)
+        {
+            if (GameManager.player == PlayerID.LOCALPLAYER)
+            {
+                return PlayerHit.PLAYER1;
+            }
+            else
+            {
+                return PlayerHit.PLAYER2;
+            }
+        }
+        if (map.GetPlayerStartPositions()[1] == _pos)
+        {
+            if (GameManager.player == PlayerID.LOCALPLAYER)
+            {
+                return PlayerHit.PLAYER2;
+            }
+            else
+            {
+                return PlayerHit.PLAYER1;
+            }
+        }
+        return PlayerHit.NULL;
     }
 
     public PlayerHit GetHitPlayer(GameObject _hitObj)
@@ -206,6 +353,11 @@ public class GridManager : MonoBehaviour
             }
         }
         return PlayerHit.NULL;
+    }
+
+    public MapBase GetMap()
+    {
+        return map;
     }
 }
 

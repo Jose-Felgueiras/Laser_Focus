@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using System;
 public enum PlayerHit
 {
     NULL,
@@ -19,11 +19,16 @@ public struct LaserPoint {
 
 public class Laser : MonoBehaviour
 {
+
+    public Color debugColor = Color.white;
     [SerializeField]
     private int maxLaserReflections = 50;
     [SerializeField]
-    private Vector3 startDirection;
-    LaserPoint startLaserPoint;
+    private Vector2 startDirection;
+    [SerializeField]
+    private Vector2 startLaserPoint;
+    [SerializeField]
+    private Vector2 startDDAPoint;
     LineRenderer lineRenderer;
     private LayerMask reflectLayer;
     private LayerMask refractLayer;
@@ -31,125 +36,450 @@ public class Laser : MonoBehaviour
 
     private PlayerHit hitPlayer = PlayerHit.NULL;
 
+    private bool checkFirstCell = true;
+
     void Start()
     {
         SettupLaser();
-        UpdateLaser();
+        lineRenderer.positionCount = 2;
+        DDA(checkFirstCell);
     }
-    //private void Update()
-    //{
-    //    UpdateLaser();
-    //}
 
-    public void UpdateLaser()
+
+    public void DDA()
     {
-        laser.Clear();
-        lineRenderer.positionCount = 1;
-        lineRenderer.SetPosition(0, startLaserPoint.position);
-        RaycastHit hit;
-        LaserPoint previousLaserPoint;
-        //Debug.DrawRay(startLaserPoint.position, startLaserPoint.direction, Color.red);
-        laser.Add(startLaserPoint);
 
-        //TODO
-        //DETECT HIT WITH RAYCAST
-        //GET BEHAVIOUR OF HIT
-        //PROCESS BEHAVIOUR
-        //CHECK IF NEW POINT WAS ADDED TO LASER
-        //REPEAT
+        lineRenderer.SetPosition(0, new Vector3(startLaserPoint.x, startLaserPoint.y, -1));
 
-        if (Physics.Raycast(startLaserPoint.position, startLaserPoint.direction, out hit, Mathf.Infinity))
+        Vector2 vRayStart = startDDAPoint;
+
+        Vector2 vRayDir = startDirection.normalized;
+        Vector2 vRayUnitStepSize = new Vector2(Mathf.Sqrt(1 + (vRayDir.y / vRayDir.x) * (vRayDir.y / vRayDir.x)), Mathf.Sqrt(1 + (vRayDir.x / vRayDir.y) * (vRayDir.x / vRayDir.y)));
+
+        Vector2Int vMapCheck = new Vector2Int((int)(vRayStart.x + GridManager.v3TowerOffset.x), (int)(vRayStart.y + GridManager.v3TowerOffset.y));
+        Vector2 vRayLength1D;
+        Vector2Int vStep = new Vector2Int();
+        Vector2Int vPrevMapCheck = vMapCheck;
+
+        if (vRayDir.x < 0)
         {
-            lineRenderer.positionCount = 2;
-            startLaserPoint.hitPoint = hit.point;
-            startLaserPoint.hitNormal = hit.normal;
-            startLaserPoint.hitTower = hit.transform.gameObject;
-            laser.Clear();
-            laser.Add(startLaserPoint);
-            lineRenderer.SetPosition(1, startLaserPoint.hitPoint);
-            previousLaserPoint = startLaserPoint;
-            if (hit.transform.gameObject)
-            {
-                GridTile hitTile = GameManager.instance.GetGridManager().GetGridTileFromGameObject(hit.transform.gameObject);
-                if (hitTile.position != Vector2.zero)
-                {
-                    if (GameManager.instance.GetGridManager().GetTowerFromGameObject(hit.transform.gameObject).GetBehaviour())
-                    {
-                        GameManager.instance.GetGridManager().GetTowerFromGameObject(hit.transform.gameObject).GetBehaviour().OnLaserHit(this, hitTile);
-                    }
-                }
-            }
-            for (int i = 0; i < maxLaserReflections; i++)
-            {
-                CalculateNewLaserPoint();
-                
-                if (laser[laser.Count - 1].position != laser[laser.Count - 2].position)
-                {
-                    lineRenderer.positionCount++;
-                    lineRenderer.SetPosition(i + 2, laser[laser.Count - 1].position);
-                }
-                else
-                {
-                    break;
-                }
-            }
+            vStep.x = -1;
+            vRayLength1D.x = (vRayStart.x - (float)vMapCheck.x) * vRayUnitStepSize.x;
         }
-    }
-
-    void CalculateNewLaserPoint()
-    {
-        LaserPoint outLaserPoint = new LaserPoint();
-        RaycastHit hit;
-        if (Physics.Raycast(laser[laser.Count - 1].position, laser[laser.Count - 1].direction, out hit, Mathf.Infinity))
+        else
         {
-            GridTile hitTile = GameManager.instance.GetGridManager().GetGridTileFromGameObject(hit.transform.gameObject);
-            if (hitTile.currentTowerMesh)
+            vStep.x = 1;
+            vRayLength1D.x = ((float)(vMapCheck.x + 1) - vRayStart.x) * vRayUnitStepSize.x;
+
+        }
+
+        if (vRayDir.y < 0)
+        {
+            vStep.y = -1;
+            vRayLength1D.y = (vRayStart.y - (float)vMapCheck.y) * vRayUnitStepSize.y;
+        }
+        else
+        {
+            vStep.y = 1;
+            vRayLength1D.y = ((float)(vMapCheck.y + 1) - vRayStart.y) * vRayUnitStepSize.y;
+
+        }
+
+        bool bTileFound = false;
+        float fMaxDistance = 10000.0f;
+        float fDistance = 0.0f;
+        while (!bTileFound && fDistance < fMaxDistance)
+        {
+            if (debugColor != Color.white)
             {
-                if (GameManager.instance.GetGridManager().GetTowerFromGameObject(hit.transform.gameObject))
+                GameManager.instance.GetGridManager().GetGridTile(vPrevMapCheck).background.GetComponent<MeshRenderer>().material.color = debugColor;
+                GameManager.instance.GetGridManager().GetGridTile(vMapCheck).background.GetComponent<MeshRenderer>().material.color = Color.red;
+            }
+            else
+            {
+                GameManager.instance.GetGridManager().GetGridTile(vPrevMapCheck).background.GetComponent<MeshRenderer>().material.color = debugColor;
+                GameManager.instance.GetGridManager().GetGridTile(vMapCheck).background.GetComponent<MeshRenderer>().material.color = Color.red;
+            }
+            if (vMapCheck.x >= 0 && vMapCheck.x < GameManager.instance.GetGridManager().GetGridDimensions().x && vMapCheck.y >= 0 && vMapCheck.y < GameManager.instance.GetGridManager().GetGridDimensions().y)
+            {
+                if (!GameManager.instance.GetGridManager().IsTileAvailable(vMapCheck.x, vMapCheck.y))
                 {
+                    bTileFound = true;
+                }
+            }
 
-                    if (GameManager.instance.GetGridManager().GetTowerFromGameObject(hit.transform.gameObject).GetBehaviour() != null)
+            Vector2 vIntersection;
+            if (bTileFound)
+            {
+                vIntersection = vRayStart + vRayDir * fDistance;
+                HitSide hitSide = GameManager.instance.GetGridManager().GetTower(vMapCheck.x, vMapCheck.y).FindHitSide(vMapCheck, vPrevMapCheck);
+                ELocalHitSide localHitSide = GameManager.instance.GetGridManager().GetTower(vMapCheck.x, vMapCheck.y).FindLocalHitSide(hitSide, vMapCheck);
+
+                switch (hitSide)
+                {
+                    case HitSide.TOP:
+                        lineRenderer.SetPosition(1, GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform.position + Vector3.up * 0.5f);
+                        break;
+                    case HitSide.RIGHT:
+                        lineRenderer.SetPosition(1, GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform.position + Vector3.right * 0.5f);
+                        break;
+                    case HitSide.BOTTOM:
+                        lineRenderer.SetPosition(1, GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform.position + Vector3.down * 0.5f);
+                        break;
+                    case HitSide.LEFT:
+                        lineRenderer.SetPosition(1, GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform.position + Vector3.left * 0.5f);
+                        break;
+                    default:
+                        break;
+                }
+                if (GameManager.instance.GetGridManager().GetTower(vMapCheck.x, vMapCheck.y))
+                {
+                    if (GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform != transform.parent)
                     {
-
-                        GameManager.instance.GetGridManager().GetTowerFromGameObject(hit.transform.gameObject).GetBehaviour().OnLaserHit(this, hitTile);
+                        if (GameManager.instance.GetGridManager().GetTower(vMapCheck.x, vMapCheck.y).GetBehaviours().Length > 0)
+                        {
+                            foreach (TowerBehaviour behaviour in GameManager.instance.GetGridManager().GetGridTile(vMapCheck.x, vMapCheck.y).currentTowerMesh.GetComponents<TowerBehaviour>())
+                            {
+                                behaviour.SetInLaser(this);
+                                behaviour.SetHitSide(hitSide);
+                                behaviour.SetLocalHitSide(localHitSide);
+                                behaviour.OnLaserHit(vRayDir, vMapCheck);
+                            }
+                        }
                     }
                     else
                     {
-                        outLaserPoint.position = hit.point;
-                        laser.Add(outLaserPoint);
+                        bTileFound = false;
                     }
                 }
-                else
-                {
-                    outLaserPoint.position = hit.point;
-                    laser.Add(outLaserPoint);
-                }
             }
-            if (GameManager.instance.GetGridManager().HitPlayer(hit.transform.parent.gameObject))
+            vPrevMapCheck = vMapCheck;
+            if (vRayLength1D.x < vRayLength1D.y)
             {
-                hitPlayer = GameManager.instance.GetGridManager().GetHitPlayer(hit.transform.parent.gameObject);
-                GameManager.instance.laserHits.Add(hitPlayer);
+                vMapCheck.x += vStep.x;
+                fDistance = vRayLength1D.x;
+                vRayLength1D.x += vRayUnitStepSize.x;
+            }
+            else
+            {
+                vMapCheck.y += vStep.y;
+                fDistance = vRayLength1D.y;
+                vRayLength1D.y += vRayUnitStepSize.y;
+
             }
         }
     }
+    public void DDA(bool checkFirstCell)
+    {
+        if (checkFirstCell)
+        {
+            lineRenderer.SetPosition(0, new Vector3(startLaserPoint.x, startLaserPoint.y, -1));
+
+            Vector2 vRayStart = startDDAPoint;
+
+            Vector2 vRayDir = startDirection.normalized;
+            Vector2 vRayUnitStepSize = new Vector2(Mathf.Sqrt(1 + (vRayDir.y / vRayDir.x) * (vRayDir.y / vRayDir.x)), Mathf.Sqrt(1 + (vRayDir.x / vRayDir.y) * (vRayDir.x / vRayDir.y)));
+
+            Vector2Int vMapCheck = new Vector2Int((int)(vRayStart.x + GridManager.v3TowerOffset.x), (int)(vRayStart.y + GridManager.v3TowerOffset.y));
+            Vector2 vRayLength1D;
+            Vector2Int vStep = new Vector2Int();
+            Vector2Int vPrevMapCheck = new Vector2Int((int)transform.parent.transform.position.x, (int)transform.parent.transform.position.y);
+
+            if (vRayDir.x < 0)
+            {
+                vStep.x = -1;
+                vRayLength1D.x = (vRayStart.x - (float)vMapCheck.x) * vRayUnitStepSize.x;
+            }
+            else
+            {
+                vStep.x = 1;
+                vRayLength1D.x = ((float)(vMapCheck.x + 1) - vRayStart.x) * vRayUnitStepSize.x;
+
+            }
+
+            if (vRayDir.y < 0)
+            {
+                vStep.y = -1;
+                vRayLength1D.y = (vRayStart.y - (float)vMapCheck.y) * vRayUnitStepSize.y;
+            }
+            else
+            {
+                vStep.y = 1;
+                vRayLength1D.y = ((float)(vMapCheck.y + 1) - vRayStart.y) * vRayUnitStepSize.y;
+
+            }
+
+            bool bTileFound = false;
+            float fMaxDistance = 10000.0f;
+            float fDistance = 0.0f;
+            while (!bTileFound && fDistance < fMaxDistance)
+            {
+                if (debugColor != Color.white)
+                {
+                    GameManager.instance.GetGridManager().GetGridTile(vPrevMapCheck).background.GetComponent<MeshRenderer>().material.color = debugColor;
+                    GameManager.instance.GetGridManager().GetGridTile(vMapCheck).background.GetComponent<MeshRenderer>().material.color = Color.red;
+                }
+                else
+                {
+                    if ((vMapCheck.x + vMapCheck.y) % 2 == 0)
+                    {
+                        GameManager.instance.GetGridManager().GetGridTile(vMapCheck).background.GetComponent<MeshRenderer>().material.color = Color.black;
+                    }
+                    else
+                    {
+                        GameManager.instance.GetGridManager().GetGridTile(vMapCheck).background.GetComponent<MeshRenderer>().material.color = Color.white;
+                    }
+                }
+                
+                if (vMapCheck.x >= 0 && vMapCheck.x < GameManager.instance.GetGridManager().GetGridDimensions().x && vMapCheck.y >= 0 && vMapCheck.y < GameManager.instance.GetGridManager().GetGridDimensions().y)
+                {
+                    if (!GameManager.instance.GetGridManager().IsTileAvailable(vMapCheck.x, vMapCheck.y))
+                    {
+                        bTileFound = true;
+                    }
+                }
+
+                Vector2 vIntersection;
+                if (bTileFound)
+                {
+                    vIntersection = vRayStart + vRayDir * fDistance;
+                    HitSide hitSide = GameManager.instance.GetGridManager().GetTower(vMapCheck.x, vMapCheck.y).FindHitSide(vMapCheck, vPrevMapCheck);
+                    ELocalHitSide localHitSide = GameManager.instance.GetGridManager().GetTower(vMapCheck.x, vMapCheck.y).FindLocalHitSide(hitSide, vMapCheck);
+                    switch (hitSide)
+                    {
+                        case HitSide.TOP:
+                            lineRenderer.SetPosition(1, GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform.position + Vector3.up * 0.5f);
+                            break;
+                        case HitSide.RIGHT:
+                            lineRenderer.SetPosition(1, GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform.position + Vector3.right * 0.5f);
+                            break;
+                        case HitSide.BOTTOM:
+                            lineRenderer.SetPosition(1, GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform.position + Vector3.down * 0.5f);
+                            break;
+                        case HitSide.LEFT:
+                            lineRenderer.SetPosition(1, GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform.position + Vector3.left * 0.5f);
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if (GameManager.instance.GetGridManager().HitPlayer(vMapCheck))
+                    {
+                        hitPlayer = GameManager.instance.GetGridManager().GetHitPlayer(vMapCheck);
+                        GameManager.instance.laserHits.Add(hitPlayer);
+                    }
+
+                    if (GameManager.instance.GetGridManager().GetTower(vMapCheck.x, vMapCheck.y))
+                    {
+                        if (GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform != transform.parent)
+                        {
+                            if (GameManager.instance.GetGridManager().GetTower(vMapCheck.x, vMapCheck.y).GetBehaviours().Length > 0)
+                            {
+                                foreach (TowerBehaviour behaviour in GameManager.instance.GetGridManager().GetGridTile(vMapCheck.x, vMapCheck.y).currentTowerMesh.GetComponents<TowerBehaviour>())
+                                {
+                                    behaviour.SetInLaser(this);
+                                    behaviour.SetHitSide(hitSide);
+                                    behaviour.SetLocalHitSide(localHitSide);
+                                    behaviour.OnLaserHit(vRayDir, vMapCheck);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            bTileFound = false;
+                        }
+                    }
+                }
+                vPrevMapCheck = vMapCheck;
+                if (vRayLength1D.x < vRayLength1D.y)
+                {
+                    vMapCheck.x += vStep.x;
+                    fDistance = vRayLength1D.x;
+                    vRayLength1D.x += vRayUnitStepSize.x;
+                }
+                else
+                {
+                    vMapCheck.y += vStep.y;
+                    fDistance = vRayLength1D.y;
+                    vRayLength1D.y += vRayUnitStepSize.y;
+
+                }
+            }
+        }
+        else
+        {
+
+            lineRenderer.SetPosition(0, new Vector3(startLaserPoint.x, startLaserPoint.y, -1));
+
+            Vector2 vRayStart = startDDAPoint;
+
+            Vector2 vRayDir = startDirection.normalized;
+            Vector2 vRayUnitStepSize = new Vector2(Mathf.Sqrt(1 + (vRayDir.y / vRayDir.x) * (vRayDir.y / vRayDir.x)), Mathf.Sqrt(1 + (vRayDir.x / vRayDir.y) * (vRayDir.x / vRayDir.y)));
+
+            Vector2Int vMapCheck = new Vector2Int((int)(vRayStart.x + GridManager.v3TowerOffset.x), (int)(vRayStart.y + GridManager.v3TowerOffset.y));
+            Vector2 vRayLength1D;
+            Vector2Int vStep = new Vector2Int();
+            Vector2Int vPrevMapCheck = new Vector2Int((int)transform.parent.transform.position.x, (int)transform.parent.transform.position.y);
+
+            if (vRayDir.x < 0)
+            {
+                vStep.x = -1;
+                vRayLength1D.x = (vRayStart.x - (float)vMapCheck.x) * vRayUnitStepSize.x;
+            }
+            else
+            {
+                vStep.x = 1;
+                vRayLength1D.x = ((float)(vMapCheck.x + 1) - vRayStart.x) * vRayUnitStepSize.x;
+
+            }
+
+            if (vRayDir.y < 0)
+            {
+                vStep.y = -1;
+                vRayLength1D.y = (vRayStart.y - (float)vMapCheck.y) * vRayUnitStepSize.y;
+            }
+            else
+            {
+                vStep.y = 1;
+                vRayLength1D.y = ((float)(vMapCheck.y + 1) - vRayStart.y) * vRayUnitStepSize.y;
+
+            }
+
+            bool bTileFound = false;
+            float fMaxDistance = 10000.0f;
+            float fDistance = 0.0f;
+            int i = 0;
+            while (!bTileFound && fDistance < fMaxDistance)
+            {
+                if (i != 0)
+                {
+                    vPrevMapCheck = vMapCheck;
+                }
+
+                if (vRayLength1D.x < vRayLength1D.y)
+                {
+                    vMapCheck.x += vStep.x;
+                    fDistance = vRayLength1D.x;
+                    vRayLength1D.x += vRayUnitStepSize.x;
+                }
+                else
+                {
+                    vMapCheck.y += vStep.y;
+                    fDistance = vRayLength1D.y;
+                    vRayLength1D.y += vRayUnitStepSize.y;
+
+                }
+                if (debugColor != Color.white)
+                {
+                    GameManager.instance.GetGridManager().GetGridTile(vPrevMapCheck).background.GetComponent<MeshRenderer>().material.color = debugColor;
+                    GameManager.instance.GetGridManager().GetGridTile(vMapCheck).background.GetComponent<MeshRenderer>().material.color = Color.red;
+                }
+                else
+                {
+                    if ((vMapCheck.x + vMapCheck.y) % 2 == 0)
+                    {
+                        GameManager.instance.GetGridManager().GetGridTile(vMapCheck).background.GetComponent<MeshRenderer>().material.color = Color.black;
+                    }
+                    else
+                    {
+                        GameManager.instance.GetGridManager().GetGridTile(vMapCheck).background.GetComponent<MeshRenderer>().material.color = Color.white;
+                    }
+                }
+                if (vMapCheck.x >= 0 && vMapCheck.x < GameManager.instance.GetGridManager().GetGridDimensions().x && vMapCheck.y >= 0 && vMapCheck.y < GameManager.instance.GetGridManager().GetGridDimensions().y)
+                {
+                    if (!GameManager.instance.GetGridManager().IsTileAvailable(vMapCheck.x, vMapCheck.y))
+                    {
+                        bTileFound = true;
+                    }
+                }
+
+                Vector2 vIntersection;
+                if (bTileFound)
+                {
+                    vIntersection = vRayStart + vRayDir * fDistance;
+                    HitSide hitSide = GameManager.instance.GetGridManager().GetTower(vMapCheck.x, vMapCheck.y).FindHitSide(vMapCheck, vPrevMapCheck);
+                    ELocalHitSide localHitSide = GameManager.instance.GetGridManager().GetTower(vMapCheck.x, vMapCheck.y).FindLocalHitSide(hitSide, vMapCheck);
+
+                    switch (hitSide)
+                    {
+                        case HitSide.TOP:
+                            lineRenderer.SetPosition(1, GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform.position + Vector3.up * 0.5f);
+                            break;
+                        case HitSide.RIGHT:
+                            lineRenderer.SetPosition(1, GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform.position + Vector3.right * 0.5f);
+                            break;
+                        case HitSide.BOTTOM:
+                            lineRenderer.SetPosition(1, GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform.position + Vector3.down * 0.5f);
+                            break;
+                        case HitSide.LEFT:
+                            lineRenderer.SetPosition(1, GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform.position + Vector3.left * 0.5f);
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if (GameManager.instance.GetGridManager().HitPlayer(vMapCheck))
+                    {
+                        hitPlayer = GameManager.instance.GetGridManager().GetHitPlayer(vMapCheck);
+                        GameManager.instance.laserHits.Add(hitPlayer);
+                    }
+                    if (GameManager.instance.GetGridManager().GetTower(vMapCheck.x, vMapCheck.y))
+                    {
+                        if (GameManager.instance.GetGridManager().GetGridTile(vMapCheck).currentTowerMesh.transform != transform.parent)
+                        {
+                            if (GameManager.instance.GetGridManager().GetTower(vMapCheck.x, vMapCheck.y))
+                            {
+                                if (GameManager.instance.GetGridManager().GetTower(vMapCheck.x, vMapCheck.y).GetBehaviours().Length > 0)
+                                {
+                                    foreach (TowerBehaviour behaviour in GameManager.instance.GetGridManager().GetGridTile(vMapCheck.x, vMapCheck.y).currentTowerMesh.GetComponents<TowerBehaviour>())
+                                    {
+                                        behaviour.SetInLaser(this);
+                                        behaviour.SetHitSide(hitSide);
+                                        behaviour.SetLocalHitSide(localHitSide);
+                                        behaviour.OnLaserHit(vRayDir, vMapCheck);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            bTileFound = false;
+                        }
+                    }
+                }
+                i++;
+            }
+        }
+       
+    }
+
     public List<LaserPoint> GetLaser()
     {
         return laser;
     }
     public void SettupLaser()
     {
-        startLaserPoint.position = transform.position;
-        startLaserPoint.direction = startDirection;
         lineRenderer = GetComponent<LineRenderer>();
         reflectLayer = LayerMask.NameToLayer("Reflect");
         refractLayer = LayerMask.NameToLayer("Refract");
-        GameManager.instance.AddLaser(this);
+        GameManager.instance.AddLaser(this.gameObject);
     }
-    public void SetStartDirection(Vector3 dir)
+    public void SetStartDirection(Vector2 dir)
     {
         startDirection = dir;
     }
-
+    public void SetStartPosition(Vector2 pos)
+    {
+        startLaserPoint = pos;
+    }
+    public void SetStartDDAPoint(Vector2 pos)
+    {
+        startDDAPoint = pos;
+    }
+    public void SetCheckFirstCell(bool value)
+    {
+        checkFirstCell = value;
+    }
     public PlayerHit HitPlayer()
     {
         return hitPlayer;

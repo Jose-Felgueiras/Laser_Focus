@@ -4,23 +4,12 @@ using UnityEngine;
 
 public class PlayerDeck : MonoBehaviour
 {
-    // Start is called before the first frame update
     [SerializeField]
     private int[] deck = new int[8];
 
-    void Start()
+    public void SettupDeck(int[] _deck)
     {
-        
-    }
-
-    void UpdateDeck()
-    {
-        
-    }
-
-    public void SettupDeck()
-    {
-
+        deck = _deck;
     }
 
     public Tower GetTower(int index)

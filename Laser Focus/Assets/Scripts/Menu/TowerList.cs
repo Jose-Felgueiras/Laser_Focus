@@ -7,6 +7,16 @@ public class TowerList : MonoBehaviour
 {
     public static TowerList towerList;
 
+    [SerializeField]
+    private Sprite[] commonRarityButton = new Sprite[2];
+    [SerializeField]
+    private Sprite[] uncommonRarityButton = new Sprite[2];
+    [SerializeField]
+    private Sprite[] rareRarityButton = new Sprite[2];
+    [SerializeField]
+    private Sprite[] epicRarityButton = new Sprite[2];
+    [SerializeField]
+    private Sprite[] legendaryRarityButton = new Sprite[2];
 
     public GameObject towerSelectionPrefab;
     public GameObject towersBlocker;
@@ -35,6 +45,8 @@ public class TowerList : MonoBehaviour
         row.AddComponent<HorizontalLayoutGroup>();
         row.GetComponent<RectTransform>().sizeDelta = new Vector2(944, 230);
         row.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1f);
+        row.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.UpperCenter;
+
         row.GetComponent<HorizontalLayoutGroup>().padding.top = 8;
         row.GetComponent<HorizontalLayoutGroup>().padding.left = 8;
         row.GetComponent<HorizontalLayoutGroup>().spacing = 8;
@@ -51,6 +63,8 @@ public class TowerList : MonoBehaviour
                 newRow.AddComponent<HorizontalLayoutGroup>();
                 newRow.GetComponent<RectTransform>().sizeDelta = new Vector2(944, 230);
                 newRow.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1f);
+                newRow.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.UpperCenter;
+
                 newRow.GetComponent<HorizontalLayoutGroup>().padding.top = 8;
                 newRow.GetComponent<HorizontalLayoutGroup>().padding.left = 8;
                 newRow.GetComponent<HorizontalLayoutGroup>().spacing = 8;
@@ -59,8 +73,50 @@ public class TowerList : MonoBehaviour
             }
             GameObject towerSelection = Instantiate(towerSelectionPrefab,transform.GetChild(Mathf.FloorToInt(i / 4)));
             towerSelection.AddComponent<DragDrop>();
-            towerSelection.transform.GetChild(0).GetComponent<Image>().sprite = AllTowers.instance.GetTowerFromIndex(i).GetSprite();
-            towerSelection.transform.GetChild(0).GetComponent<Image>().color = AllTowers.instance.GetTowerFromIndex(i).GetColor();
+            SpriteState tempState = new SpriteState();
+            towerSelection.transform.GetChild(0).GetComponent<Button>().transition = Selectable.Transition.SpriteSwap;
+            switch (AllTowers.instance.GetTowerFromIndex(i).GetRarity())
+            {
+                case ETowerRarity.COMMON:
+                    tempState.highlightedSprite = commonRarityButton[0];
+                    tempState.selectedSprite = commonRarityButton[0];
+                    tempState.pressedSprite = commonRarityButton[1];
+                    towerSelection.transform.GetChild(0).GetComponent<Button>().image.sprite = commonRarityButton[0];
+                    towerSelection.transform.GetChild(0).GetComponent<Button>().spriteState = tempState;
+                    break;
+                case ETowerRarity.UNCOMMON:
+                    tempState.highlightedSprite = uncommonRarityButton[0];
+                    tempState.selectedSprite = uncommonRarityButton[0];
+                    tempState.pressedSprite = uncommonRarityButton[1];
+                    towerSelection.transform.GetChild(0).GetComponent<Button>().image.sprite = uncommonRarityButton[0];
+                    towerSelection.transform.GetChild(0).GetComponent<Button>().spriteState = tempState;
+                    break;
+                case ETowerRarity.RARE:
+                    tempState.highlightedSprite = rareRarityButton[0];
+                    tempState.selectedSprite = rareRarityButton[0];
+                    tempState.pressedSprite = rareRarityButton[1];
+                    towerSelection.transform.GetChild(0).GetComponent<Button>().image.sprite = rareRarityButton[0];
+                    towerSelection.transform.GetChild(0).GetComponent<Button>().spriteState = tempState;
+                    break;
+                case ETowerRarity.EPIC:
+                    tempState.highlightedSprite = epicRarityButton[0];
+                    tempState.selectedSprite = epicRarityButton[0];
+                    tempState.pressedSprite = epicRarityButton[1];
+                    towerSelection.transform.GetChild(0).GetComponent<Button>().image.sprite = epicRarityButton[0];
+                    towerSelection.transform.GetChild(0).GetComponent<Button>().spriteState = tempState;
+                    break;
+                case ETowerRarity.LEGENDARY:
+                    tempState.highlightedSprite = legendaryRarityButton[0];
+                    tempState.selectedSprite = legendaryRarityButton[0];
+                    tempState.pressedSprite = legendaryRarityButton[1];
+                    towerSelection.transform.GetChild(0).GetComponent<Button>().image.sprite = legendaryRarityButton[0];
+                    towerSelection.transform.GetChild(0).GetComponent<Button>().spriteState = tempState;
+                    break;
+                default:
+                    break;
+            }
+            towerSelection.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = AllTowers.instance.GetTowerFromIndex(i).GetSprite();
+            towerSelection.transform.GetChild(0).GetChild(0).GetComponent<Image>().color = AllTowers.instance.GetTowerFromIndex(i).GetColor();
             int index = towerSelection.transform.GetSiblingIndex() + towerSelection.transform.parent.GetSiblingIndex() * 4;
             towerSelection.transform.GetChild(0).GetComponent<Button>().onClick.AddListener(delegate { OnSelect(index); });
             towerSelection.transform.GetChild(1).GetChild(0).GetComponent<Button>().onClick.AddListener(delegate { OnSelectEquip(index); });

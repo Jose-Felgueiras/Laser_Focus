@@ -13,6 +13,8 @@ public class Map_Testing : MapBase
     public override GridTile[,] GenerateMap(int sizeX, int sizeY, Transform holder)
     {
         grid = new GridTile[sizeX, sizeY];
+        mapLasers = new Laser[1];
+
         for (int y = 0; y < sizeX; y++)
         {
             for (int x = 0; x < sizeY; x++)
@@ -33,8 +35,19 @@ public class Map_Testing : MapBase
                 else
                 {
                     grid[x, y].background = Instantiate(mapGenerationTowers[0].GetGameObject(), holder);
-                    grid[x, y].background.transform.position = new Vector3(grid[x, y].position.x, 0, grid[x, y].position.y);
+                    grid[x, y].background.transform.position = new Vector3(grid[x, y].position.x, grid[x, y].position.y, 0) + offset;
                     grid[x, y].background.isStatic = true;
+                    if (grid[x, y].background.GetComponent<MeshRenderer>())
+                    {
+                        if ((x + y) % 2 == 0)
+                        {
+                            grid[x, y].background.GetComponent<MeshRenderer>().material.color = Color.black;
+                        }
+                        else
+                        {
+                            grid[x, y].background.GetComponent<MeshRenderer>().material.color = Color.white;
+                        }
+                    }
                 }
 
                 //Outside Walls
@@ -46,7 +59,7 @@ public class Map_Testing : MapBase
                         {
                             grid[x, y].currentTower = mapGenerationTowers[2];
                             grid[x, y].currentTowerMesh = Instantiate(mapGenerationTowers[2].GetGameObject(), grid[x, y].background.transform);
-                            grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, 1, grid[x, y].position.y);
+                            grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, grid[x, y].position.y, -1) + offset;
                             grid[x, y].currentTowerMesh.GetComponent<MeshRenderer>().material.color = Color.blue;
                             grid[x, y].owner = TileOwner.GAMEMANAGER;
 
@@ -57,7 +70,7 @@ public class Map_Testing : MapBase
                             {
                                 grid[x, y].currentTower = mapGenerationTowers[3];
                                 grid[x, y].currentTowerMesh = Instantiate(mapGenerationTowers[3].GetGameObject(), grid[x, y].background.transform);
-                                grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, 1, grid[x, y].position.y);
+                                grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, grid[x, y].position.y, -1) + offset;
                                 grid[x, y].currentTowerMesh.GetComponent<MeshRenderer>().material.color = Color.blue;
                                 grid[x, y].owner = TileOwner.GAMEMANAGER;
 
@@ -68,7 +81,7 @@ public class Map_Testing : MapBase
                                 {
                                     grid[x, y].currentTower = mapGenerationTowers[3];
                                     grid[x, y].currentTowerMesh = Instantiate(mapGenerationTowers[3].GetGameObject(), grid[x, y].background.transform);
-                                    grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, 1, grid[x, y].position.y);
+                                    grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, grid[x, y].position.y, -1) + offset;
                                     grid[x, y].currentTowerMesh.transform.rotation = Quaternion.Euler(0.0f, 90.0f, 0.0f);
                                     grid[x, y].currentTowerMesh.GetComponent<MeshRenderer>().material.color = Color.blue;
                                     grid[x, y].owner = TileOwner.GAMEMANAGER;
@@ -80,7 +93,7 @@ public class Map_Testing : MapBase
                                     {
                                         grid[x, y].currentTower = mapGenerationTowers[3];
                                         grid[x, y].currentTowerMesh = Instantiate(mapGenerationTowers[3].GetGameObject(), grid[x, y].background.transform);
-                                        grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, 1, grid[x, y].position.y);
+                                        grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, grid[x, y].position.y, -1) + offset;
                                         grid[x, y].currentTowerMesh.transform.rotation = Quaternion.Euler(0.0f, 180.0f, 0.0f);
                                         grid[x, y].currentTowerMesh.GetComponent<MeshRenderer>().material.color = Color.blue;
                                         grid[x, y].owner = TileOwner.GAMEMANAGER;
@@ -92,7 +105,7 @@ public class Map_Testing : MapBase
                                         {
                                             grid[x, y].currentTower = mapGenerationTowers[3];
                                             grid[x, y].currentTowerMesh = Instantiate(mapGenerationTowers[3].GetGameObject(), grid[x, y].background.transform);
-                                            grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, 1, grid[x, y].position.y);
+                                            grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, grid[x, y].position.y, -1) + offset;
                                             grid[x, y].currentTowerMesh.transform.rotation = Quaternion.Euler(0.0f, 270.0f, 0.0f);
                                             grid[x, y].currentTowerMesh.GetComponent<MeshRenderer>().material.color = Color.blue;
                                             grid[x, y].owner = TileOwner.GAMEMANAGER;
@@ -102,7 +115,7 @@ public class Map_Testing : MapBase
                                         {
                                             grid[x, y].currentTower = mapGenerationTowers[1];
                                             grid[x, y].currentTowerMesh = Instantiate(mapGenerationTowers[0].GetGameObject(), grid[x, y].background.transform);
-                                            grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, 1, grid[x, y].position.y);
+                                            grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, grid[x, y].position.y, -1) + offset;
                                             grid[x, y].currentTowerMesh.GetComponent<MeshRenderer>().material.color = Color.red;
                                             grid[x, y].owner = TileOwner.GAMEMANAGER;
 
@@ -119,8 +132,13 @@ public class Map_Testing : MapBase
                 {
                     grid[x, y].currentTower = mapGenerationTowers[4];
                     grid[x, y].currentTowerMesh = Instantiate(mapGenerationTowers[4].GetGameObject(), grid[x, y].background.transform);
-                    grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, 1, grid[x, y].position.y);
+                    grid[x, y].currentTowerMesh.transform.position = new Vector3(grid[x, y].position.x, grid[x, y].position.y, -1) + offset;
                     grid[x, y].owner = TileOwner.GAMEMANAGER;
+
+                    mapLasers[0] = grid[x, y].currentTowerMesh.GetComponent<Laser>();
+                    mapLasers[0].SetStartPosition(grid[x, y].currentTowerMesh.transform.position);
+                    mapLasers[0].SetStartDDAPoint(grid[x, y].position);
+                    mapLasers[0].SetCheckFirstCell(false);
                 }
             }
         }

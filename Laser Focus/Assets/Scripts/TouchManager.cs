@@ -149,7 +149,7 @@ public class TouchManager : MonoBehaviour
                     Destroy(towerHolo);
                     selectedTower = null;
                 }
-                GameManager.instance.UpdateLasers();
+                //GameManager.instance.UpdateLasers();
             }
         }
 
@@ -236,14 +236,14 @@ public class TouchManager : MonoBehaviour
                     if (GameManager.instance.GetGridManager().IsBackgroundEmpty(gridPos))
                     {
                         GameManager.instance.GetGridManager().SetGridTileTower(gridPos, towerHolo, selectedTower);
-                        towerHolo.AddComponent(GameManager.instance.GetGridManager().GetTowerFromCoords(gridPos).GetBehaviour().GetType());
+                        //towerHolo.AddComponent(GameManager.instance.GetGridManager().GetTowerFromCoords(gridPos).GetBehaviour().GetType());
                     }
                     else
                     {
                         Destroy(towerHolo);
                         selectedTower = null;
                     }
-                    GameManager.instance.UpdateLasers();
+                    //GameManager.instance.UpdateLasers();
                 }
             }
         }

@@ -47,14 +47,7 @@ public class InGameHUD : MonoBehaviour
 
     void Start()
     {
-        foreach (Transform child in deckInterfaceParent)
-        {
-            if (child.GetChild(0).GetComponentInChildren<Image>())
-            {
-                child.GetChild(0).GetComponentInChildren<Image>().sprite = GameManager.instance.GetPlayerDeck().GetTower(child.GetSiblingIndex()).GetSprite();
-                child.GetChild(0).GetComponentInChildren<Image>().color = GameManager.instance.GetPlayerDeck().GetTower(child.GetSiblingIndex()).GetColor();
-            }
-        }
+        UpdateDeckVisuals();
     }
 
     public void ShowGameOverPanel(Winner winner)
@@ -137,6 +130,18 @@ public class InGameHUD : MonoBehaviour
         deckPanel.SetActive(false);
     }
 
+    public void ShowRotateOption(bool value)
+    {
+        if (value)
+        {
+            playerControlsPanel.transform.GetChild(0).GetChild(0).gameObject.SetActive(true);
+        }
+        else
+        {
+            playerControlsPanel.transform.GetChild(0).GetChild(0).gameObject.SetActive(false);
+        }
+    }
+
     public void StopPlacing()
     {
         playerControlsPanel.SetActive(false);
@@ -151,6 +156,18 @@ public class InGameHUD : MonoBehaviour
     public void HideOptions()
     {
         optionsPanel.SetActive(false);
+    }
+
+    public void UpdateDeckVisuals()
+    {
+        foreach (Transform child in deckInterfaceParent)
+        {
+            if (child.GetChild(0).GetComponentInChildren<Image>())
+            {
+                child.GetChild(0).GetComponentInChildren<Image>().sprite = GameManager.instance.GetPlayerDeck().GetTower(child.GetSiblingIndex()).GetSprite();
+                child.GetChild(0).GetComponentInChildren<Image>().color = GameManager.instance.GetPlayerDeck().GetTower(child.GetSiblingIndex()).GetColor();
+            }
+        }
     }
 
     public void Forfeit()

@@ -308,6 +308,7 @@ public class Client : MonoBehaviour
             {(int)ServerPackets.handledFriendshipRequestListRequest, ClientHandle.HandleFriendRequestsListRequest},
             {(int)ServerPackets.canceledMatchmaking, ClientHandle.CanceledMatchmaking},
             {(int)ServerPackets.sendPlayerIntoGame, ClientHandle.SendPlayerIntoGame},
+            {(int)ServerPackets.sendDeckToPlayer, ClientHandle.ReceiveDeckFromServer},
             {(int)ServerPackets.sendPlayerNumber, ClientHandle.SetPlayerNumber},
             {(int)ServerPackets.startPlayerTurn, ClientHandle.StartPlayerTurn},
             {(int)ServerPackets.placeTower, ClientHandle.PlaceTower},

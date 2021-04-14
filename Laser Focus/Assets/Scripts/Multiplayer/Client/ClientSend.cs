@@ -7,7 +7,10 @@ public class ClientSend : MonoBehaviour
     private static void SendTPCData(Packet _packet)
     {
         _packet.WriteLength();
-        Client.instance.tcp.SendData(_packet);
+        if (Client.instance != null)
+        {
+            Client.instance.tcp.SendData(_packet);
+        }
     }
 
     private static void SendUDPData(Packet _packet)
@@ -124,6 +127,20 @@ public class ClientSend : MonoBehaviour
     {
         using (Packet _packet = new Packet((int)ClientPackets.cancelMatchmaking))
         {
+            SendTPCData(_packet);
+        }
+    }
+
+    public static void SendDeckToServer()
+    {
+        using (Packet _packet = new Packet((int)ClientPackets.sendDeckToServer))
+        {
+            _packet.Write(PlayerConfig.GetDeck(PlayerConfig.GetSelectedDeck()).Length);
+
+            for (int i = 0; i < PlayerConfig.GetDeck(PlayerConfig.GetSelectedDeck()).Length; i++)
+            {
+                _packet.Write(PlayerConfig.GetDeck(PlayerConfig.GetSelectedDeck())[i]);
+            }
             SendTPCData(_packet);
         }
     }

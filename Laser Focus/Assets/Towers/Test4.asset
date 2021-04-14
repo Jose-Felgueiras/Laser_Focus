@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: Test4
   m_EditorClassIdentifier: 
   description: 
-  towerMesh: {fileID: 4614965704926440386, guid: 1bbdd18c8b5b9b8468f75e0ab7c509d8, type: 3}
+  towerMesh: {fileID: 1483617491036272526, guid: db107915588bcd14bbad1855430ed6d7, type: 3}
+  towerRarity: 3
   towerCost: 0
-  towerImage: {fileID: 21300000, guid: 305f1901d0e910d40adf53b7415068c0, type: 3}
+  towerImage: {fileID: 21300000, guid: 0842b6aabf674d94e9cc54b0f033f7ad, type: 3}
   colorTint: {r: 0, g: 0, b: 1, a: 1}
-  behaviour: {fileID: 11400000, guid: 72c489f783b58b745a4b0b6bfe4e134e, type: 2}
+  canRotate: 0
+  behaviours:
+  - {fileID: 2021972958874892170, guid: a3dcb46b43891cd49bc1f9c465c7b5bc, type: 3}

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1dca1fa8b98983b479c40c886afa626b, type: 3}
+  m_Name: Map 1
+  m_EditorClassIdentifier: 
+  materials:
+  - {fileID: 2100000, guid: 0babe33207731b34fbd85c20e800d322, type: 2}
+  - {fileID: 2100000, guid: 3c6b2beb43e9b3840b9bf35ca2b385d3, type: 2}
+  - {fileID: 2100000, guid: 61ad6cb977036604b83e07be7b07de06, type: 2}
+  - {fileID: 2100000, guid: e0a9362aa01495d4b8f7053334a67a65, type: 2}
+  - {fileID: 2100000, guid: 461e6d5eb82b9084eaf81bb3b554b090, type: 2}
+  mapGenerationTowers:
+  - {fileID: 11400000, guid: 922f5d7375451d842a9a708e69ac0f7d, type: 2}
+  - {fileID: 11400000, guid: bcee84df758ee494cb9e32b955c21b23, type: 2}
+  - {fileID: 11400000, guid: 417975bdab503294ab323726115a29de, type: 2}
+  - {fileID: 11400000, guid: 914334528ff467a4f89ee350f768608a, type: 2}
+  - {fileID: 11400000, guid: c439316f12142a346a0154fdaffd095e, type: 2}
+  playerStartPositions:
+  - {x: 2, y: 6}
+  - {x: 14, y: 6}

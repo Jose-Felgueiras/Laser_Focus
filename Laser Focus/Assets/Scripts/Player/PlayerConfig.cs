@@ -10,6 +10,8 @@ public static class PlayerConfig
     private static int ID = -1;
     private static string username = "null";
 
+    private static int selectedDeck = 0;
+
     private static int[] deck1 = new int[8];
     private static int[] deck2 = new int[8];
     private static int[] deck3 = new int[8];
@@ -34,6 +36,8 @@ public static class PlayerConfig
         JSONObject playerJSON = new JSONObject();
         playerJSON.Add("ID", ID);
         playerJSON.Add("Username", username);
+        playerJSON.Add("DeckID", selectedDeck);
+
 
         JSONNode node = new JSONArray();
         for (int i = 0; i < deck1.Length; i++)
@@ -66,6 +70,7 @@ public static class PlayerConfig
 
         ID = playerJSON["ID"];
         username = playerJSON["Username"];
+        selectedDeck = playerJSON["DeckID"];
 
         JSONNode node = new JSONArray();
         node = playerJSON["Deck1"];
@@ -192,5 +197,14 @@ public static class PlayerConfig
 
         
         
+    }
+    public static int GetSelectedDeck()
+    {
+        return selectedDeck;
+    }
+    public static void SetSelectedDeck(int deckID)
+    {
+        selectedDeck = deckID;
+        Save();
     }
 }

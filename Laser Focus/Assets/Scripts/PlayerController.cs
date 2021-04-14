@@ -7,13 +7,13 @@ using UnityEngine.UI;
 public class PlayerController : MonoBehaviour, IDragHandler, IEndDragHandler, IBeginDragHandler, IInitializePotentialDragHandler
 {
 
-    private int selectedTower;
+    private int selectedTower = -1;
     private GameObject towerHolo;
     private Vector2 gridPos;
 
-    private bool isPlacingTower;
+    private Vector2 prevPos;
 
-    private GameObject draggTower;
+    private bool isPlacingTower;
 
     private bool isPlayerTurn;
 
@@ -23,26 +23,62 @@ public class PlayerController : MonoBehaviour, IDragHandler, IEndDragHandler, IB
         {
             if (_data.pointerPressRaycast.gameObject.GetComponentInParent<Canvas>() && _data.pointerPressRaycast.gameObject.GetComponentInParent<GridLayoutGroup>())
             {
-                Debug.Log(_data.pointerPressRaycast.gameObject.transform.name);
                 selectedTower = _data.pointerPressRaycast.gameObject.transform.GetSiblingIndex();
-                towerHolo = Instantiate(GameManager.instance.GetPlayerDeck().GetTower(selectedTower).GetGameObject());
-                towerHolo.transform.position = _data.pointerCurrentRaycast.worldPosition;
-                draggTower = towerHolo;
             }
         }
         else
         {
-            Ray ray = Camera.main.ScreenPointToRay(_data.position);
-
-            RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity);
-
-            foreach (RaycastHit hit in hits)
+            if (!_data.pointerPressRaycast.gameObject.GetComponentInParent<HorizontalLayoutGroup>())
             {
-                if (hit.transform.gameObject == towerHolo)
+                if (towerHolo)
                 {
-                    draggTower = towerHolo;
+                    towerHolo.SetActive(false);
                 }
             }
+            if (selectedTower >= 0)
+            {
+                Ray ray = Camera.main.ScreenPointToRay(_data.position);
+
+                RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity);
+
+                if (hits.Length > 0)
+                {
+                    foreach (RaycastHit hit in hits)
+                    {
+                        if (hit.transform.gameObject.layer == LayerMask.NameToLayer("Background"))
+                        {
+                            if ((prevPos.x + prevPos.y) % 2 == 0)
+                            {
+                                GameManager.instance.GetGridManager().GetGridTile(prevPos).background.GetComponent<MeshRenderer>().material.color = Color.black;
+
+                            }
+                            else
+                            {
+                                GameManager.instance.GetGridManager().GetGridTile(prevPos).background.GetComponent<MeshRenderer>().material.color = Color.white;
+                            }
+
+
+                            gridPos = GameManager.instance.GetGridManager().GetBackgroundCoordsFromIndex(hit.transform.GetSiblingIndex());
+
+                            GameManager.instance.GetGridManager().GetGridTile(gridPos).background.GetComponent<MeshRenderer>().material.color = Color.cyan;
+
+                            prevPos = gridPos;
+                        }
+                    }
+                }
+            }
+            //Ray ray = Camera.main.ScreenPointToRay(_data.position);
+
+            //RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity);
+
+            //foreach (RaycastHit hit in hits)
+            //{
+            //    Debug.Log(hit.transform.gameObject);
+            //    if (hit.transform.gameObject == towerHolo)
+            //    {
+            //        draggTower = towerHolo;
+            //    }
+            //}
         }
     }
 
@@ -53,7 +89,7 @@ public class PlayerController : MonoBehaviour, IDragHandler, IEndDragHandler, IB
 
     public void OnDrag(PointerEventData _data)
     {
-        if (draggTower)
+        if (selectedTower >= 0)
         {
             Ray ray = Camera.main.ScreenPointToRay(_data.position);
 
@@ -65,25 +101,31 @@ public class PlayerController : MonoBehaviour, IDragHandler, IEndDragHandler, IB
                 {
                     if (hit.transform.gameObject.layer == LayerMask.NameToLayer("Background"))
                     {
+                        if ((prevPos.x + prevPos.y) % 2 == 0)
+                        {
+                            GameManager.instance.GetGridManager().GetGridTile(prevPos).background.GetComponent<MeshRenderer>().material.color = Color.black;
+
+                        }
+                        else
+                        {
+                            GameManager.instance.GetGridManager().GetGridTile(prevPos).background.GetComponent<MeshRenderer>().material.color = Color.white;
+                        }
+
                         gridPos = GameManager.instance.GetGridManager().GetBackgroundCoordsFromIndex(hit.transform.GetSiblingIndex());
 
-                        draggTower.transform.position = new Vector3(gridPos.x, 1, gridPos.y);
+                        GameManager.instance.GetGridManager().GetGridTile(gridPos).background.GetComponent<MeshRenderer>().material.color = Color.cyan;
 
+                        prevPos = gridPos;
                     }
                 }
-            }
-            else
-            {
-                draggTower.transform.position = new Vector3(_data.pointerCurrentRaycast.worldPosition.x / Screen.width, 1, _data.pointerCurrentRaycast.worldPosition.y / Screen.height);
             }
         }
     }
 
     public void OnEndDrag(PointerEventData _data)
     {
-        if (towerHolo)
+        if (selectedTower >= 0)
         {
-            draggTower = null;
             if (GameManager.instance.GetGridManager().IsBackgroundEmpty(gridPos))
             {
                 if (isPlayerTurn)
@@ -106,6 +148,17 @@ public class PlayerController : MonoBehaviour, IDragHandler, IEndDragHandler, IB
     {
         isPlacingTower = true;
         InGameHUD.instance.StartPlacing();
+        InGameHUD.instance.ShowRotateOption(GameManager.instance.GetPlayerDeck().GetTower(selectedTower).CanRotate());
+        if (towerHolo)
+        {
+            towerHolo.SetActive(true);
+            towerHolo.transform.position = GameManager.instance.GetGridManager().GetGridTile(gridPos).background.transform.position + Vector3.back;
+        }
+        else
+        {
+            towerHolo = Instantiate(GameManager.instance.GetPlayerDeck().GetTower(selectedTower).GetGameObject());
+            towerHolo.transform.position = GameManager.instance.GetGridManager().GetGridTile(gridPos).background.transform.position + Vector3.back;
+        }
     }
 
     public void CancelPlacing()
@@ -115,8 +168,6 @@ public class PlayerController : MonoBehaviour, IDragHandler, IEndDragHandler, IB
         selectedTower = -1;
         InGameHUD.instance.StopPlacing();
     }
-
-
 
     public void CancelPlacing(string _msg)
     {
@@ -135,6 +186,7 @@ public class PlayerController : MonoBehaviour, IDragHandler, IEndDragHandler, IB
     public void PlaceTowerRequest()
     {
         isPlayerTurn = false;
+        //GameManager.instance.PlaceTower(PlayerConfig.GetPlayerID(), gridPos, towerHolo.transform.rotation, selectedTower);
         ClientSend.PlaceTowerRequest(gridPos, towerHolo.transform.rotation, selectedTower);
         CancelPlacing();
     }

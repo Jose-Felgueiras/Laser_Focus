@@ -143,6 +143,17 @@ public class ClientHandle : MonoBehaviour
         SceneLoader.instance.LoadLevel(3);
     }
 
+    public static void ReceiveDeckFromServer(Packet _packet)
+    {
+        int[] _deck = new int[_packet.ReadInt()];
+        for (int i = 0; i < _deck.Length; i++)
+        {
+            _deck[i] = _packet.ReadInt();
+        }
+        GameManager.instance.GetPlayerDeck().SettupDeck(_deck);
+        InGameHUD.instance.UpdateDeckVisuals();
+    }
+
     public static void SetPlayerNumber(Packet _packet)
     {
         int _number = _packet.ReadInt();

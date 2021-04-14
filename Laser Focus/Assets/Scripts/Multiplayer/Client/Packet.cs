@@ -21,6 +21,7 @@ public enum ServerPackets
 
     canceledMatchmaking,
     sendPlayerIntoGame,
+    sendDeckToPlayer,
 
     sendPlayerNumber,
     startPlayerTurn,
@@ -51,6 +52,7 @@ public enum ClientPackets
 
     joinRandomRoom,
     cancelMatchmaking,
+    sendDeckToServer,
     successfullyLoadedGame,
 
     requestPlayer,

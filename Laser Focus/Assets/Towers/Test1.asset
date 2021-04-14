@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   description: 
   towerMesh: {fileID: 4614965704926440386, guid: 699bb6bdcfff55c4b9cda991a75ec28a, type: 3}
+  towerRarity: 1
   towerCost: 0
   towerImage: {fileID: 21300000, guid: 305f1901d0e910d40adf53b7415068c0, type: 3}
   colorTint: {r: 1, g: 1, b: 1, a: 1}
-  behaviour: {fileID: 11400000, guid: 72c489f783b58b745a4b0b6bfe4e134e, type: 2}
+  canRotate: 1
+  behaviours:
+  - {fileID: 2106391719676415967, guid: 271800cd618bc7e41aa643751eabfc45, type: 3}

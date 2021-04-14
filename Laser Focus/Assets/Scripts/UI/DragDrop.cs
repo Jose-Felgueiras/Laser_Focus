@@ -26,14 +26,14 @@ public class DragDrop : MonoBehaviour, IDragHandler, IEndDragHandler, IBeginDrag
     {
         if (_data.pointerCurrentRaycast.gameObject)
         {
-            if (_data.pointerCurrentRaycast.gameObject.transform.parent.GetComponent<AspectRatioFitter>())
+            if (_data.pointerCurrentRaycast.gameObject.transform.parent.parent.GetComponent<AspectRatioFitter>())
             {
                 if (!tempGO)
                 {
                     tempGO = new GameObject("Temp");
                     tempGO.AddComponent<Image>();
                     tempGO.transform.SetParent(transform.GetComponentInParent<PageSwiper>().transform.parent.transform);
-                    int index = _data.pointerCurrentRaycast.gameObject.transform.parent.GetSiblingIndex() + _data.pointerCurrentRaycast.gameObject.transform.parent.parent.GetSiblingIndex() * 4;
+                    int index = _data.pointerCurrentRaycast.gameObject.transform.parent.parent.GetSiblingIndex() + _data.pointerCurrentRaycast.gameObject.transform.parent.parent.parent.GetSiblingIndex() * 4;
                     draggedTower = AllTowers.instance.GetTowerFromIndex(index);
                     tempGO.GetComponent<Image>().sprite = draggedTower.GetSprite();
                     tempGO.GetComponent<Image>().color = draggedTower.GetColor();
@@ -77,9 +77,9 @@ public class DragDrop : MonoBehaviour, IDragHandler, IEndDragHandler, IBeginDrag
                     if (_data.pointerCurrentRaycast.gameObject.GetComponentInParent<GridLayoutGroup>())
                     {
                         _data.pointerCurrentRaycast.gameObject.GetComponentInParent<DeckManager>().EquipTower(_data.pointerCurrentRaycast.gameObject.GetComponentInParent<Button>().gameObject.transform.GetSiblingIndex(), draggedTower);
-                        Debug.Log(_data.pointerCurrentRaycast.gameObject.GetComponentInParent<Button>().gameObject.name);
+                        //Debug.Log(_data.pointerCurrentRaycast.gameObject.GetComponentInParent<Button>().gameObject.name);
                     }
-                }
+                }                    
             }
             Destroy(tempGO.gameObject);
             tempGO = null;

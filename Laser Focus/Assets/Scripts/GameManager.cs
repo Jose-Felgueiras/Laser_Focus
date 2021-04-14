@@ -78,7 +78,7 @@ public class GameManager : MonoBehaviour
 
     private GridManager gridManager;
 
-    private List<Laser> lasers = new List<Laser>();
+    private List<GameObject> lasers = new List<GameObject>();
 
     // Start is called before the first frame update
     void Start()
@@ -108,7 +108,7 @@ public class GameManager : MonoBehaviour
         return gridManager;
     }
 
-    public void AddLaser(Laser newLaser)
+    public void AddLaser(GameObject newLaser)
     {
         lasers.Add(newLaser);
     }
@@ -116,13 +116,13 @@ public class GameManager : MonoBehaviour
     {
         if (lasers.Count > 0)
         {
-            Laser starter = lasers[0];
+            GameObject starter = lasers[0];
             lasers.Remove(starter);
             if (lasers.Count > 0)
             {
-                foreach (Laser laser in lasers.ToArray())
+                foreach (GameObject laser in lasers.ToArray())
                 {
-                    Destroy(laser.gameObject);
+                    Destroy(laser);
                 }
             }
             lasers.Clear();
@@ -132,13 +132,15 @@ public class GameManager : MonoBehaviour
     public void UpdateLasers()
     {
         ClearLasers();
-        if (lasers.Count > 0)
-        {
-            foreach (Laser laser in lasers.ToArray())
-            {
-                laser.UpdateLaser();
-            }
-        }
+        lasers[0].GetComponent<Laser>().DDA(false);
+        //if (lasers.Count > 0)
+        //{
+        //    foreach (GameObject laser in lasers.ToArray())
+        //    {
+        //        if(laser.GetComponent<Laser>())
+        //            laser.GetComponent<Laser>().DDA(false);
+        //    }
+        //}
     }
 
     public PlayerController GetLocalPlayerController()
@@ -150,11 +152,20 @@ public class GameManager : MonoBehaviour
     {
         if (gridManager.IsTileAvailable(_pos))
         {
-            GameObject tower = Instantiate(AllTowers.instance.GetTowerFromIndex(_towerIndex).GetGameObject(), new Vector3(_pos.x, 1, _pos.y), _rot);
-            tower.AddComponent(AllTowers.instance.GetTowerFromIndex(_towerIndex).GetBehaviour().GetType());
+            GameObject tower = Instantiate(AllTowers.instance.GetTowerFromIndex(_towerIndex).GetGameObject(), new Vector3(_pos.x, _pos.y, -1) + MapBase.GetOffset(), _rot);
+
             tower.transform.SetParent(gridManager.GetGridTile(_pos).background.transform);
             gridManager.SetGridTileTower(_pos, tower, AllTowers.instance.GetTowerFromIndex(_towerIndex));
 
+            if (AllTowers.instance.GetTowerFromIndex(_towerIndex).GetBehaviours().Length > 0)
+            {
+                foreach (TowerBehaviour behaviour in AllTowers.instance.GetTowerFromIndex(_towerIndex).GetBehaviours())
+                {
+                    TowerBehaviour newBehaviour = tower.AddComponent(behaviour.GetType()) as TowerBehaviour;
+                    newBehaviour.SetGridTile(gridManager.GetGridTile(_pos));
+                    newBehaviour.OnPlace(_pos);
+                }
+            }
             if (_player == PlayerConfig.GetPlayerID())
             {
                 //BLUE
@@ -169,8 +180,9 @@ public class GameManager : MonoBehaviour
 
             }
         }
+        gridManager.ClearLaserHits();
         UpdateLasers();
-        UpdateLasers();//Sometimes laser doenst update.
+
 
         //Weird bug, needs delay to find winner
         StartCoroutine(CheckWinnerDelay());
@@ -183,13 +195,17 @@ public class GameManager : MonoBehaviour
 
         if (player == PlayerID.LOCALPLAYER)
         {
-            gridManager.player1.GetComponentInChildren<MeshRenderer>().material = localPlayerColor;
-            gridManager.player2.GetComponentInChildren<MeshRenderer>().material = playerColor;
+            gridManager.GetGridTile(gridManager.GetMap().GetPlayerStartPositions()[0]).currentTowerMesh.GetComponent<MeshRenderer>().material = localPlayerColor;
+            gridManager.GetGridTile(gridManager.GetMap().GetPlayerStartPositions()[1]).currentTowerMesh.GetComponent<MeshRenderer>().material = playerColor;
+            //gridManager.player1.GetComponentInChildren<MeshRenderer>().material = localPlayerColor;
+            //gridManager.player2.GetComponentInChildren<MeshRenderer>().material = playerColor;
         }
         else
         {
-            gridManager.player1.GetComponentInChildren<MeshRenderer>().material = playerColor;
-            gridManager.player2.GetComponentInChildren<MeshRenderer>().material = localPlayerColor;
+            //gridManager.player1.GetComponentInChildren<MeshRenderer>().material = playerColor;
+            //gridManager.player2.GetComponentInChildren<MeshRenderer>().material = localPlayerColor;
+            gridManager.GetGridTile(gridManager.GetMap().GetPlayerStartPositions()[0]).currentTowerMesh.GetComponent<MeshRenderer>().material = playerColor;
+            gridManager.GetGridTile(gridManager.GetMap().GetPlayerStartPositions()[1]).currentTowerMesh.GetComponent<MeshRenderer>().material = localPlayerColor;
         }
     }
 
